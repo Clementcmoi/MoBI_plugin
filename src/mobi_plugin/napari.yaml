@@ -1,0 +1,57 @@
+name: mobi-plugin
+display_name: MoBI
+# use 'hidden' to remove plugin from napari hub search results
+visibility: public
+# see https://napari.org/stable/plugins/manifest.html for valid categories
+categories: ["Annotation", "Segmentation", "Acquisition"]
+contributions:
+  commands:
+    - id: mobi-plugin.get_reader
+      python_name: mobi_plugin._reader:napari_get_reader
+      title: Open data with MoBI
+    - id: mobi-plugin.write_multiple
+      python_name: mobi_plugin._writer:write_multiple
+      title: Save multi-layer data with MoBI
+    - id: mobi-plugin.write_single_image
+      python_name: mobi_plugin._writer:write_single_image
+      title: Save image data with MoBI
+    - id: mobi-plugin.make_sample_data
+      python_name: mobi_plugin._sample_data:make_sample_data
+      title: Load sample data from MoBI
+    - id: mobi-plugin.make_container_widget
+      python_name: mobi_plugin:ImageThreshold
+      title: Make threshold Container widget
+    - id: mobi-plugin.make_magic_widget
+      python_name: mobi_plugin:threshold_magic_widget
+      title: Make threshold magic widget
+    - id: mobi-plugin.make_function_widget
+      python_name: mobi_plugin:threshold_autogenerate_widget
+      title: Make threshold function widget
+    - id: mobi-plugin.make_qwidget
+      python_name: mobi_plugin:ExampleQWidget
+      title: Make example QWidget
+  readers:
+    - command: mobi-plugin.get_reader
+      accepts_directories: false
+      filename_patterns: ['*.npy']
+  writers:
+    - command: mobi-plugin.write_multiple
+      layer_types: ['image*','labels*']
+      filename_extensions: []
+    - command: mobi-plugin.write_single_image
+      layer_types: ['image']
+      filename_extensions: ['.npy']
+  sample_data:
+    - command: mobi-plugin.make_sample_data
+      display_name: MoBI
+      key: unique_id.1
+  widgets:
+    - command: mobi-plugin.make_container_widget
+      display_name: Container Threshold
+    - command: mobi-plugin.make_magic_widget
+      display_name: Magic Threshold
+    - command: mobi-plugin.make_function_widget
+      autogenerate: true
+      display_name: Autogenerate Threshold
+    - command: mobi-plugin.make_qwidget
+      display_name: Example QWidget
