@@ -43,6 +43,7 @@ if TYPE_CHECKING:
 # to indicate it should be wrapped as a magicgui to autogenerate
 # a widget.
 
+
 class StartProcessing(QWidget):
     """
     Widget personnalisé pour traiter les données dans Napari.
