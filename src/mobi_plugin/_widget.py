@@ -31,10 +31,9 @@ Replace code below according to your needs.
 
 from typing import TYPE_CHECKING
 
-from magicgui import magic_factory
-from magicgui.widgets import CheckBox, Container, create_widget
-from qtpy.QtWidgets import QHBoxLayout, QPushButton, QWidget
-from skimage.util import img_as_float
+import napari
+import numpy as np
+from qtpy.QtWidgets import QLabel, QPushButton, QVBoxLayout, QWidget
 
 if TYPE_CHECKING:
     import napari
@@ -43,87 +42,80 @@ if TYPE_CHECKING:
 # Uses the `autogenerate: true` flag in the plugin manifest
 # to indicate it should be wrapped as a magicgui to autogenerate
 # a widget.
-def threshold_autogenerate_widget(
-    img: "napari.types.ImageData",
-    threshold: "float",
-) -> "napari.types.LabelsData":
-    return img_as_float(img) > threshold
 
+class StartProcessing(QWidget):
+    """
+    Widget personnalisé pour traiter les données dans Napari.
+    """
 
-# the magic_factory decorator lets us customize aspects of our widget
-# we specify a widget type for the threshold parameter
-# and use auto_call=True so the function is called whenever
-# the value of a parameter changes
-@magic_factory(
-    threshold={"widget_type": "FloatSlider", "max": 1}, auto_call=True
-)
-def threshold_magic_widget(
-    img_layer: "napari.layers.Image", threshold: "float"
-) -> "napari.types.LabelsData":
-    return img_as_float(img_layer.data) > threshold
-
-
-# if we want even more control over our widget, we can use
-# magicgui `Container`
-class ImageThreshold(Container):
     def __init__(self, viewer: "napari.viewer.Viewer"):
-        super().__init__()
-        self._viewer = viewer
-        # use create_widget to generate widgets from type annotations
-        self._image_layer_combo = create_widget(
-            label="Image", annotation="napari.layers.Image"
-        )
-        self._threshold_slider = create_widget(
-            label="Threshold", annotation=float, widget_type="FloatSlider"
-        )
-        self._threshold_slider.min = 0
-        self._threshold_slider.max = 1
-        # use magicgui widgets directly
-        self._invert_checkbox = CheckBox(text="Keep pixels below threshold")
+        """
+        Initialise le widget avec les boutons et les labels nécessaires.
 
-        # connect your own callbacks
-        self._threshold_slider.changed.connect(self._threshold_im)
-        self._invert_checkbox.changed.connect(self._threshold_im)
-
-        # append into/extend the container with your widgets
-        self.extend(
-            [
-                self._image_layer_combo,
-                self._threshold_slider,
-                self._invert_checkbox,
-            ]
-        )
-
-    def _threshold_im(self):
-        image_layer = self._image_layer_combo.value
-        if image_layer is None:
-            return
-
-        image = img_as_float(image_layer.data)
-        name = image_layer.name + "_thresholded"
-        threshold = self._threshold_slider.value
-        if self._invert_checkbox.value:
-            thresholded = image < threshold
-        else:
-            thresholded = image > threshold
-        if name in self._viewer.layers:
-            self._viewer.layers[name].data = thresholded
-        else:
-            self._viewer.add_labels(thresholded, name=name)
-
-
-class ExampleQWidget(QWidget):
-    # your QWidget.__init__ can optionally request the napari viewer instance
-    # use a type annotation of 'napari.viewer.Viewer' for any parameter
-    def __init__(self, viewer: "napari.viewer.Viewer"):
+        Parameters:
+        viewer (napari.viewer.Viewer): Instance du viewer Napari.
+        """
         super().__init__()
         self.viewer = viewer
 
+        # Configuration de la mise en page
+        layout = QVBoxLayout()
+        self.setLayout(layout)
+
+        # Bouton pour l'action principale
         btn = QPushButton("Click me!")
         btn.clicked.connect(self._on_click)
+        btn.clicked.connect(self.denoise)
+        layout.addWidget(btn)
 
-        self.setLayout(QHBoxLayout())
-        self.layout().addWidget(btn)
+        # Label pour afficher le résultat
+        self.result_label = QLabel("Résultat :")
+        layout.addWidget(self.result_label)
+
+        # Bouton pour afficher la liste des layers
+        btn_list_layers = QPushButton("Afficher la liste des Layers")
+        btn_list_layers.clicked.connect(self.get_list_layers)
+        layout.addWidget(btn_list_layers)
+
+        # Label pour afficher la liste des layers
+        self.layer_label = QLabel("Liste des layers :")
+        layout.addWidget(self.layer_label)
 
     def _on_click(self):
-        print("napari has", len(self.viewer.layers), "layers")
+        """
+        Action exécutée lorsque le bouton "Click me!" est cliqué.
+        """
+        print("Button pushed !!")
+
+    def denoise(self):
+        """
+        Applique une action de traitement (exemple : calcul de la moyenne des pixels)
+        sur le layer actif de type Image.
+        """
+        print("Denoise")
+
+        # Récupération du layer actif
+        active_layer = self.viewer.layers.selection.active
+
+        if active_layer is None:
+            self.result_label.setText("Aucun layer sélectionné.")
+            return
+
+        if isinstance(active_layer, napari.layers.Image):
+            data = active_layer.data
+            mean_value = np.mean(data)
+            self.result_label.setText(f"Moyenne des pixels : {mean_value:.2f}")
+        else:
+            self.result_label.setText("Sélectionnez un layer image.")
+
+    def get_list_layers(self):
+        """
+        Affiche la liste des layers chargés dans le viewer.
+        """
+        if not self.viewer.layers:
+            self.layer_label.setText("Aucun layer chargé.")
+            return
+
+        # Liste des noms de layers
+        layer_names = [layer.name for layer in self.viewer.layers]
+        self.layer_label.setText("Layers :\n" + "\n".join(layer_names))

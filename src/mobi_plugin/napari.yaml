@@ -18,22 +18,13 @@ contributions:
     - id: mobi-plugin.make_sample_data
       python_name: mobi_plugin._sample_data:make_sample_data
       title: Load sample data from MoBI
-    - id: mobi-plugin.make_container_widget
-      python_name: mobi_plugin:ImageThreshold
-      title: Make threshold Container widget
-    - id: mobi-plugin.make_magic_widget
-      python_name: mobi_plugin:threshold_magic_widget
-      title: Make threshold magic widget
-    - id: mobi-plugin.make_function_widget
-      python_name: mobi_plugin:threshold_autogenerate_widget
-      title: Make threshold function widget
     - id: mobi-plugin.make_qwidget
-      python_name: mobi_plugin:ExampleQWidget
-      title: Make example QWidget
+      python_name: mobi_plugin:StartProcessing
+      title: Make QWidget
   readers:
     - command: mobi-plugin.get_reader
       accepts_directories: false
-      filename_patterns: ['*.npy']
+      filename_patterns: ['*.tdf']
   writers:
     - command: mobi-plugin.write_multiple
       layer_types: ['image*','labels*']
@@ -46,12 +37,5 @@ contributions:
       display_name: MoBI
       key: unique_id.1
   widgets:
-    - command: mobi-plugin.make_container_widget
-      display_name: Container Threshold
-    - command: mobi-plugin.make_magic_widget
-      display_name: Magic Threshold
-    - command: mobi-plugin.make_function_widget
-      autogenerate: true
-      display_name: Autogenerate Threshold
     - command: mobi-plugin.make_qwidget
-      display_name: Example QWidget
+      display_name: Start Processing
