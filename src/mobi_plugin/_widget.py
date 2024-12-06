@@ -33,7 +33,7 @@ from typing import TYPE_CHECKING
 
 import napari
 import numpy as np
-from qtpy.QtWidgets import QLabel, QPushButton, QVBoxLayout, QWidget
+from qtpy.QtWidgets import QLabel, QLineEdit, QPushButton, QVBoxLayout, QWidget
 
 if TYPE_CHECKING:
     import napari
@@ -82,6 +82,24 @@ class StartProcessing(QWidget):
         self.layer_label = QLabel("Liste des layers :")
         layout.addWidget(self.layer_label)
 
+        self.slice_selection_label = QLabel("Slice: ")
+        layout.addWidget(self.slice_selection_label)
+
+        self.slice_selection_value = QLineEdit()
+        layout.addWidget(self.slice_selection_value)
+
+        self.slice_selection_value_validate_button = QPushButton("Validate")
+        selected_slice = (
+            self.slice_selection_value_validate_button.clicked.connect(
+                self.save_value
+            )
+        )
+        layout.addWidget(self.slice_selection_value_validate_button)
+        print(selected_slice)
+
+        self.display_selected_slice = QLabel("No slice selected")
+        layout.addWidget(self.display_selected_slice)
+
     def _on_click(self):
         """
         Action exécutée lorsque le bouton "Click me!" est cliqué.
@@ -120,3 +138,10 @@ class StartProcessing(QWidget):
         # Liste des noms de layers
         layer_names = [layer.name for layer in self.viewer.layers]
         self.layer_label.setText("Layers :\n" + "\n".join(layer_names))
+
+    def save_value(self):
+        slice_selected = self.slice_selection_value.text()
+        self.display_selected_slice.setText(
+            f"Selected slice: {slice_selected}"
+        )
+        return slice_selected
