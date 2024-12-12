@@ -33,7 +33,14 @@ from typing import TYPE_CHECKING
 
 import napari
 import numpy as np
-from qtpy.QtWidgets import QLabel, QLineEdit, QPushButton, QVBoxLayout, QWidget
+from qtpy.QtWidgets import (
+    QLabel,
+    QLineEdit,
+    QPushButton,
+    QVBoxLayout,
+    QWidget,
+    QComboBox,)
+from .widgets._processing import processing
 
 if TYPE_CHECKING:
     import napari
@@ -62,12 +69,6 @@ class StartProcessing(QWidget):
         # Configuration de la mise en page
         layout = QVBoxLayout()
         self.setLayout(layout)
-
-        # Bouton pour l'action principale
-        btn = QPushButton("Click me!")
-        btn.clicked.connect(self._on_click)
-        btn.clicked.connect(self.denoise)
-        layout.addWidget(btn)
 
         # Label pour afficher le résultat
         self.result_label = QLabel("Résultat :")
@@ -100,11 +101,37 @@ class StartProcessing(QWidget):
         self.display_selected_slice = QLabel("No slice selected")
         layout.addWidget(self.display_selected_slice)
 
+        # Widgets pour la sélection de trois layers
+        self.dark_label = QLabel("Select Dark :")
+        layout.addWidget(self.dark_label)
+
+        self.dark_selection = QComboBox()
+        layout.addWidget(self.dark_selection)
+
+        self.white_label = QLabel("Select White :")
+        layout.addWidget(self.white_label)
+
+        self.white_selection = QComboBox()
+        layout.addWidget(self.white_selection)
+
+        self.data_label = QLabel("Select Data :")
+        layout.addWidget(self.data_label)
+
+        self.data_selection = QComboBox()
+        layout.addWidget(self.data_selection)
+
+        self.slice_selection_value_validate_button = QPushButton("Start Processing")
+        self.slice_selection_value_validate_button.clicked.connect(
+            lambda: self.call_processing()
+        )
+
+        layout.addWidget(self.slice_selection_value_validate_button)
+
     def _on_click(self):
         """
         Action exécutée lorsque le bouton "Click me!" est cliqué.
         """
-        print("Button pushed !!")
+        print("Button pushed !!")        
 
     def denoise(self):
         """
@@ -139,9 +166,58 @@ class StartProcessing(QWidget):
         layer_names = [layer.name for layer in self.viewer.layers]
         self.layer_label.setText("Layers :\n" + "\n".join(layer_names))
 
+        self.dark_selection.clear()
+        self.white_selection.clear()
+        self.data_selection.clear()
+
+        for layer in self.viewer.layers:
+            self.dark_selection.addItem(layer.name)
+            self.white_selection.addItem(layer.name)
+            self.data_selection.addItem(layer.name)
+
     def save_value(self):
         slice_selected = self.slice_selection_value.text()
         self.display_selected_slice.setText(
             f"Selected slice: {slice_selected}"
         )
         return slice_selected
+
+    def call_processing(self):
+        """
+        Appelle une fonction externe en passant les données nécessaires.
+        """
+        # Récupérez les données des widgets
+        try:
+            slice_selected = int(self.slice_selection_value.text())
+        except ValueError:
+            self.result_label.setText("Veuillez entrer un entier valide pour le slice.")
+            return
+
+        # Récupérer les noms des couches (layers) disponibles
+        layer_names = [layer.name for layer in self.viewer.layers]
+
+        # Vérifiez que des couches sont présentes
+        if len(layer_names) < 3:  # Exemple : s'assurer d'avoir au moins 3 couches
+            self.result_label.setText("Veuillez sélectionner au moins trois layers.")
+            return
+
+        # Vérifiez que le champ slice_selected est valide
+        if slice_selected < 0:
+            self.result_label.setText("Le numéro de slice doit être positif.")
+            return
+
+        # Affiche les informations pour débogage
+        print("Couches sélectionnées :", layer_names)
+        print("Slice sélectionné :", slice_selected)
+
+        # Appel de la fonction externe avec les données
+        try:
+            processing(layer_names, slice_selected, self.viewer)
+            self.result_label.setText("Traitement terminé avec succès.")
+        except Exception as e:
+            self.result_label.setText(f"Erreur lors du traitement : {e}")
+            print(f"Erreur : {e}")
+
+
+
+
