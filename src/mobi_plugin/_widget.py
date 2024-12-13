@@ -33,13 +33,16 @@ from typing import TYPE_CHECKING
 
 import napari
 import numpy as np
+from PyQt5.QtCore import Qt
 from qtpy.QtWidgets import (
     QLabel,
     QLineEdit,
     QPushButton,
     QVBoxLayout,
+    QHBoxLayout,
     QWidget,
-    QComboBox,)
+    QComboBox,
+    QCheckBox,)
 from .widgets._processing import processing
 
 if TYPE_CHECKING:
@@ -66,93 +69,85 @@ class StartProcessing(QWidget):
         super().__init__()
         self.viewer = viewer
 
-        # Configuration de la mise en page
+        # Configuration de la mise en page principale
+        self.setup_ui()
+
+
+    def setup_ui(self):
+        """
+        Configure l'interface utilisateur
+        """
         layout = QVBoxLayout()
         self.setLayout(layout)
 
-        # Label pour afficher le résultat
-        self.result_label = QLabel("Résultat :")
+        # Section : Résultat
+        self.result_label = QLabel("Results :")
         layout.addWidget(self.result_label)
 
-        # Bouton pour afficher la liste des layers
-        btn_list_layers = QPushButton("Afficher la liste des Layers")
+        # Section : Liste des layers
+        btn_list_layers = QPushButton("Display list of layers :")
         btn_list_layers.clicked.connect(self.get_list_layers)
         layout.addWidget(btn_list_layers)
 
-        # Label pour afficher la liste des layers
-        self.layer_label = QLabel("Liste des layers :")
+        self.layer_label = QLabel("List of layers :")
         layout.addWidget(self.layer_label)
 
-        self.slice_selection_label = QLabel("Slice: ")
+        # Section : Sélection d'une tranche
+        self.slice_selection_label = QLabel("Select a slice :")
         layout.addWidget(self.slice_selection_label)
 
         self.slice_selection_value = QLineEdit()
         layout.addWidget(self.slice_selection_value)
 
-        self.slice_selection_value_validate_button = QPushButton("Validate")
-        selected_slice = (
-            self.slice_selection_value_validate_button.clicked.connect(
-                self.save_value
-            )
-        )
-        layout.addWidget(self.slice_selection_value_validate_button)
-        print(selected_slice)
+        btn_validate_slice = QPushButton("Confirm selection")
+        btn_validate_slice.clicked.connect(self.save_value)
+        layout.addWidget(btn_validate_slice)
 
         self.display_selected_slice = QLabel("No slice selected")
         layout.addWidget(self.display_selected_slice)
 
-        # Widgets pour la sélection de trois layers
-        self.dark_label = QLabel("Select Dark :")
-        layout.addWidget(self.dark_label)
+        # Section : Sélection des layers
+        self.darkfield_label = QLabel("Select darkfield :")
+        layout.addWidget(self.darkfield_label)
+        self.darkfield_selection = QComboBox()
+        layout.addWidget(self.darkfield_selection)
 
-        self.dark_selection = QComboBox()
-        layout.addWidget(self.dark_selection)
+        self.reference_label = QLabel("Select reference :")
+        layout.addWidget(self.reference_label)
+        self.reference_selection = QComboBox()
+        layout.addWidget(self.reference_selection)
 
-        self.white_label = QLabel("Select White :")
-        layout.addWidget(self.white_label)
+        self.sample_label = QLabel("Select sample :")
+        layout.addWidget(self.sample_label)
+        self.sample_selection = QComboBox()
+        layout.addWidget(self.sample_selection)
 
-        self.white_selection = QComboBox()
-        layout.addWidget(self.white_selection)
+        whitefield_layout = QHBoxLayout()
 
-        self.data_label = QLabel("Select Data :")
-        layout.addWidget(self.data_label)
+        whitefield_layout.addWidget(QLabel("Flatfield :"))
+        checkbox = QCheckBox()
+        checkbox.setChecked(False)
+        whitefield_layout.addWidget(checkbox)
 
-        self.data_selection = QComboBox()
-        layout.addWidget(self.data_selection)
+        self.checkbox.stateChanged.connect(self.on_checkbox_state_changed, layout)            
 
-        self.slice_selection_value_validate_button = QPushButton("Start Processing")
-        self.slice_selection_value_validate_button.clicked.connect(
-            lambda: self.call_processing()
-        )
+        layout.addLayout(whitefield_layout)
 
-        layout.addWidget(self.slice_selection_value_validate_button)
+        # Section : Bouton de traitement
+        btn_start_processing = QPushButton("Start processing")
+        btn_start_processing.clicked.connect(self.call_processing)
+        layout.addWidget(btn_start_processing)
 
-    def _on_click(self):
-        """
-        Action exécutée lorsque le bouton "Click me!" est cliqué.
-        """
-        print("Button pushed !!")        
-
-    def denoise(self):
-        """
-        Applique une action de traitement (exemple : calcul de la moyenne des pixels)
-        sur le layer actif de type Image.
-        """
-        print("Denoise")
-
-        # Récupération du layer actif
-        active_layer = self.viewer.layers.selection.active
-
-        if active_layer is None:
-            self.result_label.setText("Aucun layer sélectionné.")
-            return
-
-        if isinstance(active_layer, napari.layers.Image):
-            data = active_layer.data
-            mean_value = np.mean(data)
-            self.result_label.setText(f"Moyenne des pixels : {mean_value:.2f}")
+    def on_checkbox_state_changed(self, state, layout):
+        """Callback pour vérifier l'état de la checkbox."""
+        if state == Qt.Checked:
+            self.flatfield_label = QLabel("Select flatfield :")
+            layout.addWidget(self.flatfield_label)
+            self.flatfield_selection = QComboBox()
+            layout.addWidget(self.flatfield_selection)
         else:
-            self.result_label.setText("Sélectionnez un layer image.")
+            print("La case est décochée, rien ne se passe.")
+
 
     def get_list_layers(self):
         """
@@ -166,14 +161,16 @@ class StartProcessing(QWidget):
         layer_names = [layer.name for layer in self.viewer.layers]
         self.layer_label.setText("Layers :\n" + "\n".join(layer_names))
 
-        self.dark_selection.clear()
-        self.white_selection.clear()
-        self.data_selection.clear()
+        # Vérification des combobox avant de les utiliser
+        self.darkfield_selection.clear()
+        self.reference_selection.clear()
+        self.sample_selection.clear()
 
         for layer in self.viewer.layers:
-            self.dark_selection.addItem(layer.name)
-            self.white_selection.addItem(layer.name)
-            self.data_selection.addItem(layer.name)
+            self.darkfield_selection.addItem(layer.name)
+            self.reference_selection.addItem(layer.name)
+            self.sample_selection.addItem(layer.name)
+
 
     def save_value(self):
         slice_selected = self.slice_selection_value.text()
@@ -181,6 +178,7 @@ class StartProcessing(QWidget):
             f"Selected slice: {slice_selected}"
         )
         return slice_selected
+
 
     def call_processing(self):
         """

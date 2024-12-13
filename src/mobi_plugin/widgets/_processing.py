@@ -15,10 +15,6 @@ def processing(layer_names, slice_selected, viewer):
     sample = images[layer_names[0]]
     ref = images[layer_names[1]]
     dark = images[layer_names[2]]
-
-    viewer.add_image(ref, name="Reference Data Process")
-    viewer.add_image(sample, name="Sample Data Process")
-    viewer.add_image(dark, name="Dark Noise Process")
     
     ref = ref - dark
     sample = sample - dark
@@ -30,6 +26,8 @@ def processing(layer_names, slice_selected, viewer):
     dx_LCS = result_lcs_df[:,:,1]
     dy_LCS = result_lcs_df[:,:,2]
     df = result_lcs_df[:,:,3]
+
+    print(abs_LCS.shape)
 
     # Ajouter les images corrigées au viewer
     viewer.add_image(abs_LCS, name="abs")
