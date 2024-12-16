@@ -2,7 +2,8 @@ import napari
 from mbipy.numpy.phase_retrieval import lcs, lcs_df
 
 
-def processing(layer_names, slice_selected, viewer):
+
+def processing(layer_names, slice_selected, viewer, methode):
     """
     Fonction externe appelée par le widget.
     Parameters:
@@ -12,6 +13,8 @@ def processing(layer_names, slice_selected, viewer):
 
     images = load_images_from_layers(viewer, layer_names) #dict
 
+    print(layer_names)
+
     sample = images[layer_names[0]]
     ref = images[layer_names[1]]
     dark = images[layer_names[2]]
@@ -19,27 +22,30 @@ def processing(layer_names, slice_selected, viewer):
     ref = ref - dark
     sample = sample - dark
 
-    result_lcs = lcs(ref, sample, alpha=1e-5, weak_absorption=False)
-    result_lcs_df = lcs_df(ref, sample, alpha=1e-5, weak_absorption=False)
+    match methode:
 
-    abs_LCS = result_lcs_df[:,:,0]
-    dx_LCS = result_lcs_df[:,:,1]
-    dy_LCS = result_lcs_df[:,:,2]
-    df = result_lcs_df[:,:,3]
+        case "lcs":
+            result_lcs_df = lcs_df(ref, sample, alpha=1e-5, weak_absorption=False)
 
-    print(abs_LCS.shape)
+            abs = result_lcs_df[:,:,0]
+            dx = result_lcs_df[:,:,1]
+            dy = result_lcs_df[:,:,2]
+            df = result_lcs_df[:,:,3]
+
 
     # Ajouter les images corrigées au viewer
-    viewer.add_image(abs_LCS, name="abs")
-    viewer.add_image(dx_LCS, name="dx")
-    viewer.add_image(df, name="df")
+    viewer.add_image(abs, name="abs_" + methode)
+    viewer.add_image(dx, name="dx_" + methode)
+    viewer.add_image(df, name="df_" + methode)
+
+    print(dx.shape)
 
     print("Images corrigées ajoutées au viewer.")
 
     # Retourner les données pour débogage ou usage ultérieur
     return {
-        "sample_corrected": abs_LCS,
-        "ref_corrected": dx_LCS,
+        "sample_corrected": abs,
+        "ref_corrected": dx,
         "dark": df,
     }
 

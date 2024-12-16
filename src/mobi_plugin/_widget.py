@@ -42,8 +42,12 @@ from qtpy.QtWidgets import (
     QHBoxLayout,
     QWidget,
     QComboBox,
-    QCheckBox,)
+    QCheckBox,
+    QSpacerItem,
+    QSizePolicy,)
 from .widgets._processing import processing
+
+
 
 if TYPE_CHECKING:
     import napari
@@ -77,76 +81,104 @@ class StartProcessing(QWidget):
         """
         Configure l'interface utilisateur
         """
-        layout = QVBoxLayout()
-        self.setLayout(layout)
+
+        methodes_liste = ["lcs"]
+
+        self.layout = QVBoxLayout()
+        self.setLayout(self.layout)
 
         # Section : Résultat
         self.result_label = QLabel("Results :")
-        layout.addWidget(self.result_label)
+        self.layout.addWidget(self.result_label)
 
         # Section : Liste des layers
         btn_list_layers = QPushButton("Display list of layers :")
         btn_list_layers.clicked.connect(self.get_list_layers)
-        layout.addWidget(btn_list_layers)
+        self.layout.addWidget(btn_list_layers)
 
         self.layer_label = QLabel("List of layers :")
-        layout.addWidget(self.layer_label)
+        self.layout.addWidget(self.layer_label)
 
         # Section : Sélection d'une tranche
         self.slice_selection_label = QLabel("Select a slice :")
-        layout.addWidget(self.slice_selection_label)
+        self.layout.addWidget(self.slice_selection_label)
 
         self.slice_selection_value = QLineEdit()
-        layout.addWidget(self.slice_selection_value)
+        self.layout.addWidget(self.slice_selection_value)
 
         btn_validate_slice = QPushButton("Confirm selection")
         btn_validate_slice.clicked.connect(self.save_value)
-        layout.addWidget(btn_validate_slice)
+        self.layout.addWidget(btn_validate_slice)
 
         self.display_selected_slice = QLabel("No slice selected")
-        layout.addWidget(self.display_selected_slice)
+        self.layout.addWidget(self.display_selected_slice)
 
         # Section : Sélection des layers
         self.darkfield_label = QLabel("Select darkfield :")
-        layout.addWidget(self.darkfield_label)
+        self.layout.addWidget(self.darkfield_label)
         self.darkfield_selection = QComboBox()
-        layout.addWidget(self.darkfield_selection)
+        self.layout.addWidget(self.darkfield_selection)
 
         self.reference_label = QLabel("Select reference :")
-        layout.addWidget(self.reference_label)
+        self.layout.addWidget(self.reference_label)
         self.reference_selection = QComboBox()
-        layout.addWidget(self.reference_selection)
+        self.layout.addWidget(self.reference_selection)
 
         self.sample_label = QLabel("Select sample :")
-        layout.addWidget(self.sample_label)
+        self.layout.addWidget(self.sample_label)
         self.sample_selection = QComboBox()
-        layout.addWidget(self.sample_selection)
+        self.layout.addWidget(self.sample_selection)
 
         whitefield_layout = QHBoxLayout()
 
         whitefield_layout.addWidget(QLabel("Flatfield :"))
-        checkbox = QCheckBox()
-        checkbox.setChecked(False)
-        whitefield_layout.addWidget(checkbox)
+        self.checkbox = QCheckBox("")
+        self.checkbox.setChecked(False)
+        whitefield_layout.addWidget(self.checkbox)
 
-        self.checkbox.stateChanged.connect(self.on_checkbox_state_changed, layout)            
+        self.checkbox.stateChanged.connect(lambda state: self.on_checkbox_state_changed(state, self.layout))
+        self.layout.addLayout(whitefield_layout)
 
-        layout.addLayout(whitefield_layout)
+        self.methode_label = QLabel("Select Methode :")
+        self.layout.addWidget(self.methode_label)
+        self.methode_selection = QComboBox()
+        self.layout.addWidget(self.methode_selection)
+        self.methode_selection.addItems(methodes_liste)
 
         # Section : Bouton de traitement
         btn_start_processing = QPushButton("Start processing")
         btn_start_processing.clicked.connect(self.call_processing)
-        layout.addWidget(btn_start_processing)
+        self.layout.addWidget(btn_start_processing)
 
-    def on_checkbox_state_changed(self, state, layout):
+         # Ajouter un espace flexible pour maintenir les widgets en haut
+        self.layout.addSpacerItem(QSpacerItem(20, 40, QSizePolicy.Minimum, QSizePolicy.Expanding))
+
+        # Placeholders pour widgets dynamiques
+        self.flatfield_label = None
+        self.flatfield_selection = None
+
+
+    def on_checkbox_state_changed(self, checked, layout):
         """Callback pour vérifier l'état de la checkbox."""
-        if state == Qt.Checked:
+        if checked == Qt.Checked:
             self.flatfield_label = QLabel("Select flatfield :")
             layout.addWidget(self.flatfield_label)
+
             self.flatfield_selection = QComboBox()
             layout.addWidget(self.flatfield_selection)
+
+            for layer in self.viewer.layers:
+                self.flatfield_selection.addItem(layer.name)
+
         else:
-            print("La case est décochée, rien ne se passe.")
+        # Supprimer les widgets dynamiques
+            self.layout.removeWidget(self.flatfield_label)
+            self.flatfield_label.deleteLater()
+            self.flatfield_label = None
+
+            self.layout.removeWidget(self.flatfield_selection)
+            self.flatfield_selection.deleteLater()
+            self.flatfield_selection = None
 
 
     def get_list_layers(self):
@@ -171,7 +203,6 @@ class StartProcessing(QWidget):
             self.reference_selection.addItem(layer.name)
             self.sample_selection.addItem(layer.name)
 
-
     def save_value(self):
         slice_selected = self.slice_selection_value.text()
         self.display_selected_slice.setText(
@@ -192,7 +223,12 @@ class StartProcessing(QWidget):
             return
 
         # Récupérer les noms des couches (layers) disponibles
-        layer_names = [layer.name for layer in self.viewer.layers]
+        layer_names = [self.sample_selection.currentText(), self.reference_selection.currentText(), self.darkfield_selection.currentText()]
+
+        if self.flatfield_selection is not None:
+            layer_names.append(self.flatfield_selection.currentText())
+
+        methode = self.methode_selection.currentText()
 
         # Vérifiez que des couches sont présentes
         if len(layer_names) < 3:  # Exemple : s'assurer d'avoir au moins 3 couches
@@ -210,12 +246,8 @@ class StartProcessing(QWidget):
 
         # Appel de la fonction externe avec les données
         try:
-            processing(layer_names, slice_selected, self.viewer)
+            processing(layer_names, slice_selected, self.viewer, methode)
             self.result_label.setText("Traitement terminé avec succès.")
         except Exception as e:
             self.result_label.setText(f"Erreur lors du traitement : {e}")
             print(f"Erreur : {e}")
-
-
-
-
