@@ -3,13 +3,13 @@ from mbipy.numpy.phase_retrieval import lcs, lcs_df
 
 
 
-def processing(layer_names, slice_selected, viewer, methode):
+def processing(layer_names, viewer, methode):
     """
     Fonction externe appelée par le widget.
     Parameters:
     slice_selected (str): La valeur du slice sélectionné.
     """
-    print(f"Fonction externe appelée avec slice : {slice_selected} et {layer_names}")
+    print(f"Fonction externe appelée avec slice : {layer_names}")
 
     images = load_images_from_layers(viewer, layer_names) #dict
 

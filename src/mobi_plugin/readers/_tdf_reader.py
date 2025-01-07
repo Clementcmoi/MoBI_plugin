@@ -144,6 +144,8 @@ def read_tdf(paths):
         [read_elettra_tdf(path, slice_number) for path in paths]
     )
 
+    print(results.shape)
+
     # Split stacked results into separate arrays
     samples = np.stack(results[:, 0])
     references = np.stack(results[:, 1])

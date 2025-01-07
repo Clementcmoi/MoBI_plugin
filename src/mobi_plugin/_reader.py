@@ -1,4 +1,5 @@
 from .readers._tdf_reader import read_tdf
+from .readers._edf_reader import read_edf
 
 
 def napari_get_reader(path):
@@ -20,5 +21,8 @@ def napari_get_reader(path):
 
     if path.endswith(".tdf"):
         return read_tdf
+    
+    if path.endswith(".edf"):
+        return read_edf
 
     return None
