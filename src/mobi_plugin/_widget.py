@@ -255,16 +255,16 @@ class StartProcessing(QWidget):
 
     def test_function(self):
         """
-        Affiche l'histogramme de la couche sélectionnée.
+        Affiche l'histogramme de la couche sélectionnée et la plage de ses valeurs.
         """
         # Vérifie qu'une couche est sélectionnée dans le combobox "sample_selection"
-        selected_layer_name = self.sample_selection.currentText()
-        if not selected_layer_name:
+        selected_layer = list(self.viewer.layers.selection)
+        if not selected_layer:
             self.result_label.setText("Veuillez sélectionner une couche dans 'Select sample'.")
             return
 
-        # Récupère la couche correspondante
-        selected_layer = self.viewer.layers[selected_layer_name]
+        # Récupère la première couche sélectionnée
+        selected_layer = selected_layer[0]
         if not hasattr(selected_layer, "data"):
             self.result_label.setText("La couche sélectionnée ne contient pas de données valides.")
             return
@@ -276,11 +276,18 @@ class StartProcessing(QWidget):
         if data.ndim > 1:
             data = data.ravel()
 
+        # Calcul du minimum et maximum des données
+        data_min = data.min()
+        data_max = data.max()
+
         # Affiche l'histogramme avec Matplotlib
         plt.figure(figsize=(8, 6))
         plt.hist(data, bins=50, color="blue", alpha=0.7)
-        plt.title(f"Histogramme de la couche : {selected_layer_name}")
+        plt.title(f"Histogramme de la couche : {selected_layer.name}\nPlage : {data_min:.2f} - {data_max:.2f}")
         plt.xlabel("Valeurs de pixels")
         plt.ylabel("Fréquence")
         plt.grid(True)
         plt.show()
+
+        # Met à jour le label avec les valeurs min et max
+        self.result_label.setText(f"Plage des valeurs : Min = {data_min:.2f}, Max = {data_max:.2f}")

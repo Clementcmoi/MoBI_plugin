@@ -1,5 +1,5 @@
-from .readers._tdf_reader import read_tdf
-from .readers._edf_reader import read_edf
+from .readers._hdf5_reader import read_hdf5
+
 
 
 def napari_get_reader(path):
@@ -19,10 +19,7 @@ def napari_get_reader(path):
     if isinstance(path, list):
         path = path[0]  # Assume all paths are of the same type
 
-    if path.endswith(".tdf"):
-        return read_tdf
-    
-    if path.endswith(".edf"):
-        return read_edf
+    if path.endswith(".tdf") or path.endswith(".nxs"):
+        return read_hdf5
 
     return None
