@@ -24,7 +24,7 @@ contributions:
   readers:
     - command: mobi-plugin.get_reader
       accepts_directories: false
-      filename_patterns: ['*.tdf', '*.nxs']
+      filename_patterns: ['*.tdf', '*.nxs', '*.edf']
   writers:
     - command: mobi-plugin.write_multiple
       layer_types: ['image*','labels*']

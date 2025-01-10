@@ -1,9 +1,8 @@
 import napari
+import numpy as np
 from mbipy.numpy.phase_retrieval import lcs, lcs_df
 
-
-
-def processing(layer_names, viewer, methode):
+def processing(layer_names, viewer, methode, parameters):
     """
     Fonction externe appelée par le widget.
     Parameters:
@@ -11,9 +10,9 @@ def processing(layer_names, viewer, methode):
     """
     print(f"Fonction externe appelée avec slice : {layer_names}")
 
-    images = load_images_from_layers(viewer, layer_names) #dict
+    images = load_images_from_layers(viewer, layer_names)  # dict
 
-    print(layer_names)
+    print(parameters)
 
     sample = images[layer_names[0]]
     ref = images[layer_names[1]]
@@ -23,17 +22,22 @@ def processing(layer_names, viewer, methode):
     sample = sample - dark
 
     match methode:
-
         case "lcs":
-            result_lcs_df = lcs_df(ref, sample, alpha=1e-5, weak_absorption=False)
+            print('Solving using lcs methode')
 
-            abs = result_lcs_df[:,:,0]
-            dx = result_lcs_df[:,:,1]
-            dy = result_lcs_df[:,:,2]
-            df = result_lcs_df[:,:,3]
+            # Afficher les types des variables
+            print(f"ref dtype: {ref.dtype}, sample dtype: {sample.dtype}, alpha type: {type(parameters['alpha'])}, weak_absorption type: {type(parameters['weak_absorption'])}")
 
+            result_lcs_df = lcs_df(ref, sample, alpha=float(parameters['alpha']), weak_absorption=parameters['weak_absorption'])
+
+            abs = result_lcs_df[:, :, 0]
+            dx = result_lcs_df[:, :, 1]
+            dy = result_lcs_df[:, :, 2]
+            df = result_lcs_df[:, :, 3]
 
     # Ajouter les images corrigées au viewer
+    print('Adding layer to the viewer')
+
     viewer.add_image(abs, name="abs_" + methode)
     viewer.add_image(dx, name="dx_" + methode)
     viewer.add_image(df, name="df_" + methode)

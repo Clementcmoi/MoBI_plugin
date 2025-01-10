@@ -1,7 +1,6 @@
 from .readers._hdf5_reader import read_hdf5
 
 
-
 def napari_get_reader(path):
     """Determine the appropriate reader function based on the file type.
 
@@ -19,7 +18,7 @@ def napari_get_reader(path):
     if isinstance(path, list):
         path = path[0]  # Assume all paths are of the same type
 
-    if path.endswith(".tdf") or path.endswith(".nxs"):
+    if path.endswith(".tdf") or path.endswith(".nxs") or path.endswith(".edf"):
         return read_hdf5
 
     return None
