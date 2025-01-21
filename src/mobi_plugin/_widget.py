@@ -4,299 +4,339 @@ import numpy as np
 import matplotlib.pyplot as plt
 from PyQt5.QtCore import Qt
 from qtpy.QtWidgets import (
-    QLabel,
-    QLineEdit,
-    QPushButton,
-    QVBoxLayout,
-    QHBoxLayout,
+    QLabel, 
+    QLineEdit, 
+    QPushButton, 
+    QVBoxLayout, 
+    QHBoxLayout, 
     QWidget,
-    QComboBox,
+    QComboBox, 
     QCheckBox,
-    QSpacerItem,
-    QSizePolicy,
-    QFrame,
+    QSpacerItem, 
+    QSizePolicy
 )
 from .widgets._processing import processing
+
+# import lcs_dirdf
+
+from popcorn import lcs_dirdf
 
 if TYPE_CHECKING:
     import napari
 
-
 class StartProcessing(QWidget):
     """
-    Widget personnalisé pour traiter les données dans Napari.
+    Custom widget for processing data in Napari.
     """
 
     def __init__(self, viewer: "napari.viewer.Viewer"):
-        """
-        Initialise le widget avec les boutons et les labels nécessaires.
-
-        Parameters:
-        viewer (napari.viewer.Viewer): Instance du viewer Napari.
-        """
         super().__init__()
         self.viewer = viewer
-        self.parameters = {}  # Dictionnaire pour stocker les paramètres
+        self.parameters = {}
 
-        # Configuration de la mise en page principale
         self.setup_ui()
+        self.connect_signals()
 
-        # Connecter les signaux de changement de couches
+    def setup_ui(self):
+        """
+        Set up the user interface components.
+        """
+        self.setLayout(QVBoxLayout())
+
+        self.result_label = QLabel("Results:")
+        self.layout().addWidget(self.result_label)
+
+        self.add_layer_selection_section()
+        self.add_darkfield_section()
+        self.add_flatfield_section()
+        self.add_method_selection_section()
+        self.add_dynamic_variables_section()
+        self.add_phase_retrieval_section()
+        self.add_processing_button()
+        self.add_test_button()
+
+        # Add spacer to push widgets to the top
+        self.update_layer_selections()
+        self.layout().addSpacerItem(QSpacerItem(20, 40, QSizePolicy.Minimum, QSizePolicy.Expanding))
+
+    def connect_signals(self):
+        """
+        Connect signals for layer updates.
+        """
         self.viewer.layers.events.inserted.connect(self.update_layer_selections)
         self.viewer.layers.events.removed.connect(self.update_layer_selections)
         self.viewer.layers.events.changed.connect(self.update_layer_selections)
 
-    def setup_ui(self):
+    def add_layer_selection_section(self):
         """
-        Configure l'interface utilisateur.
+        Add layer selection UI components.
         """
-        methodes_liste = ["lcs", "lcs_df", "cst" , "wst", "csvt", "wsvt", "xsvt", "xst_xsvt", "cst_csvt", "kotler", "frankot_chellappa"]
+        self.reference_selection = self.create_combobox("Select reference:")
+        self.sample_selection = self.create_combobox("Select sample:")
 
-        # Layout principal
-        self.layout = QVBoxLayout()
-        self.setLayout(self.layout)
+    def create_combobox(self, label_text):
+        """
+        Create a labeled QComboBox.
+        """
+        self.layout().addWidget(QLabel(label_text))
+        combobox = QComboBox()
+        self.layout().addWidget(combobox)
+        return combobox
+    
+    def toggle_field_widgets(self, checked, layout, label_attr, selection_attr, label_text):
+        if checked == Qt.Checked:
+            if not getattr(self, label_attr):
+                setattr(self, label_attr, QLabel(label_text))
+                layout.addWidget(getattr(self, label_attr))
+            if not getattr(self, selection_attr):
+                combobox = QComboBox()
+                combobox.addItems([layer.name for layer in self.viewer.layers])
+                setattr(self, selection_attr, combobox)
+                layout.addWidget(combobox)
+        else:
+            widget_label = getattr(self, label_attr)
+            widget_selection = getattr(self, selection_attr)
+            if widget_label:
+                layout.removeWidget(widget_label)
+                widget_label.deleteLater()
+                setattr(self, label_attr, None)
+            if widget_selection.isVisible():
+                layout.removeWidget(widget_selection)
+                widget_selection.deleteLater()
+                setattr(self, selection_attr, None)
+        self.layout().update()
 
-        # Section : Résultat
-        self.result_label = QLabel("Results:")
-        self.layout.addWidget(self.result_label)
+    def add_darkfield_section(self):
+        """
+        Add darkfield-related UI components.
+        """
+        darkfield_layout = QVBoxLayout()
 
-        # Section : Liste des layers
-        self.layer_label = QLabel("List of layers:")
-        self.layout.addWidget(self.layer_label)
+        checkbox_layout = QHBoxLayout()
+        checkbox_layout.addWidget(QLabel("Darkfield:"))
+        self.darkfield_checkbox = QCheckBox()
+        self.darkfield_checkbox.stateChanged.connect(lambda state: self.toggle_field_widgets(state, darkfield_layout, 'darkfield_label', 'darkfield_selection', 'Select darkfield:'))
+        checkbox_layout.addWidget(self.darkfield_checkbox)
 
-        # Section : Sélection des layers
-        self.darkfield_label = QLabel("Select darkfield :")
-        self.layout.addWidget(self.darkfield_label)
-        self.darkfield_selection = QComboBox()
-        self.layout.addWidget(self.darkfield_selection)
+        darkfield_layout.addLayout(checkbox_layout)
+        self.layout().addLayout(darkfield_layout)
 
-        self.reference_label = QLabel("Select reference :")
-        self.layout.addWidget(self.reference_label)
-        self.reference_selection = QComboBox()
-        self.layout.addWidget(self.reference_selection)
+        self.darkfield_label = None
+        self.darkfield_selection = None
 
-        self.sample_label = QLabel("Select sample :")
-        self.layout.addWidget(self.sample_label)
-        self.sample_selection = QComboBox()
-        self.layout.addWidget(self.sample_selection)
+    def add_flatfield_section(self):
+        """
+        Add flatfield-related UI components.
+        """
+        flatfield_layout = QVBoxLayout()
 
-        # Appel automatique de la méthode pour obtenir la liste des couches
-        self.update_layer_selections()
+        checkbox_layout = QHBoxLayout()
+        checkbox_layout.addWidget(QLabel("Flatfield:"))
+        self.flatfield_checkbox = QCheckBox()
+        self.flatfield_checkbox.stateChanged.connect(lambda state: self.toggle_field_widgets(state, flatfield_layout, 'flatfield_label', 'flatfield_selection', 'Select flatfield:'))
+        checkbox_layout.addWidget(self.flatfield_checkbox)
 
-        # Section : Flatfield (avec layout imbriqué)
-        whitefield_layout = QVBoxLayout()  # Layout imbriqué pour la case à cocher et les widgets dynamiques
-        checkbox_layout = QHBoxLayout()  # Layout pour aligner la case à cocher et son label
+        flatfield_layout.addLayout(checkbox_layout)
+        self.layout().addLayout(flatfield_layout)
 
-        checkbox_layout.addWidget(QLabel("Flatfield :"))
-        self.checkbox = QCheckBox("")
-        self.checkbox.setChecked(False)
-        checkbox_layout.addWidget(self.checkbox)
-
-        whitefield_layout.addLayout(checkbox_layout)
-        self.layout.addLayout(whitefield_layout)  # Ajoute le layout imbriqué au layout principal
-
-        # Connecter la case à cocher à son callback
         self.flatfield_label = None
         self.flatfield_selection = None
-        self.checkbox.stateChanged.connect(lambda state: self.on_checkbox_state_changed(state, whitefield_layout))
 
-        # Section : Sélection de la méthode
-        self.methode_label = QLabel("Select Methode :")
-        self.layout.addWidget(self.methode_label)
-        self.methode_selection = QComboBox()
-        self.layout.addWidget(self.methode_selection)
-        self.methode_selection.addItems(methodes_liste)
-        self.methode_selection.currentIndexChanged.connect(self.update_variables_for_method)
+    def add_method_selection_section(self):
+        """
+        Add method selection UI components.
+        """
+        method_layout = QVBoxLayout()
 
-        # Section : Variables dynamiques
+        method_layout.addWidget(QLabel("Select Method:"))
+        self.method_selection = QComboBox()
+        self.method_selection.addItems(["lcs", "lcs_df", "cst_csvt"])
+        self.method_selection.currentIndexChanged.connect(self.update_variables_for_method)
+        method_layout.addWidget(self.method_selection)
+
+        self.layout().addLayout(method_layout)
+
+    def add_phase_retrieval_section(self):
+        """
+        Add phase retrieval section.
+        """
+        phase_retrieval_layout = QVBoxLayout()
+
+        checkbox_layout = QHBoxLayout()
+        checkbox_layout.addWidget(QLabel("Phase Retrieval:"))
+        self.phase_retrieval_checkbox = QCheckBox()
+        self.phase_retrieval_checkbox.stateChanged.connect(lambda state: self.toggle_field_phase(state, phase_retrieval_layout, 'phase_retrieval_label', 'phase_retrieval_selection', 'Select method:'))
+        checkbox_layout.addWidget(self.phase_retrieval_checkbox)
+
+        phase_retrieval_layout.addLayout(checkbox_layout)
+        self.layout().addLayout(phase_retrieval_layout)
+
+        self.phase_retrieval_label = None
+        self.phase_retrieval_selection = None
+
+    def add_dynamic_variables_section(self):
+        """
+        Add dynamic variables section.
+        """
         self.variables_layout = QVBoxLayout()
-        self.layout.addLayout(self.variables_layout)
-
-        # Appel explicite pour mettre à jour les variables lors de l'initialisation
+        self.layout().addLayout(self.variables_layout)
         self.update_variables_for_method()
 
-        # Section : Bouton de traitement
+    def add_processing_button(self):
+        """
+        Add the processing button.
+        """
         btn_start_processing = QPushButton("Start processing")
         btn_start_processing.clicked.connect(self.call_processing)
-        self.layout.addWidget(btn_start_processing)
+        self.layout().addWidget(btn_start_processing)
 
-        # Ajouter un espace flexible pour maintenir les widgets en haut
-        self.layout.addSpacerItem(QSpacerItem(20, 40, QSizePolicy.Minimum, QSizePolicy.Expanding))
-
-        # Bouton test
-        btn_test = QPushButton("test")
+    def add_test_button(self):
+        """
+        Add a test button.
+        """
+        btn_test = QPushButton("Test")
         btn_test.clicked.connect(self.test_function)
-        self.layout.addWidget(btn_test)
-
-    def on_checkbox_state_changed(self, checked, layout):
-        """Callback pour vérifier l'état de la checkbox."""
-        if checked == Qt.Checked:
-            self.flatfield_label = QLabel("Select flatfield :")
-            layout.addWidget(self.flatfield_label)
-
-            self.flatfield_selection = QComboBox()
-            layout.addWidget(self.flatfield_selection)
-
-            for layer in self.viewer.layers:
-                self.flatfield_selection.addItem(layer.name)
-
-        else:
-            # Supprimer les widgets dynamiques
-            self.layout.removeWidget(self.flatfield_label)
-            self.flatfield_label.deleteLater()
-            self.flatfield_label = None
-
-            self.layout.removeWidget(self.flatfield_selection)
-            self.flatfield_selection.deleteLater()
-            self.flatfield_selection = None
+        self.layout().addWidget(btn_test)
 
     def update_layer_selections(self, event=None):
         """
         Update the QComboBox selections with the list of layers.
         """
         layers = [layer.name for layer in self.viewer.layers]
+        for combobox in [self.reference_selection, self.sample_selection]:
+            combobox.clear()
+            combobox.addItems(layers)
 
-        self.darkfield_selection.clear()
-        self.reference_selection.clear()
-        self.sample_selection.clear()
-
-        self.darkfield_selection.addItems(layers)
-        self.reference_selection.addItems(layers)
-        self.sample_selection.addItems(layers)
-
-    def get_list_layers(self):
-        """
-        Get and display the list of layers.
-        """
-        self.layers = [layer.name for layer in self.viewer.layers]
-        self.layer_label.setText("List of layers: " + ", ".join(self.layers))
-        self.update_layer_selections()
-
-    def registration(self):
-        slice_selected = self.ref_registration_selection_value.text()
-        self.display_selected_slice.setText(
-            f"Selected reference: {slice_selected}"
-        )
-
-        return slice_selected
+        if self.darkfield_checkbox.isChecked():
+            self.darkfield_selection.clear()
+            self.darkfield_selection.addItems(layers)
+        
+        if self.flatfield_checkbox.isChecked():
+            self.flatfield_selection.clear()
+            self.flatfield_selection.addItems(layers)
 
     def call_processing(self):
         """
-        Appelle une fonction externe en passant les données nécessaires.
+        Call the processing function with selected parameters.
         """
+        layer_names = {
+            'sample': self.sample_selection.currentText(),
+            'reference': self.reference_selection.currentText(),
+        }
 
-        # Récupérer les noms des couches (layers) disponibles
-        layer_names = [
-            self.sample_selection.currentText(),
-            self.reference_selection.currentText(),
-            self.darkfield_selection.currentText(),
-        ]
+        darkfield_selected = False
+        flatfield_selected = False
 
-        if self.flatfield_selection is not None:
-            layer_names.append(self.flatfield_selection.currentText())
+        if self.darkfield_selection:
+            layer_names['darkfield'] = self.darkfield_selection.currentText()
+            darkfield_selected = True
 
-        methode = self.methode_selection.currentText()
+        if self.flatfield_selection:
+            layer_names['flatfield'] = self.flatfield_selection.currentText()
+            flatfield_selected = True
 
-        # Vérifiez que des couches sont présentes
-        if (
-            len(layer_names) < 3
-        ):  # Exemple : s'assurer d'avoir au moins 3 couches
-            self.result_label.setText(
-                "Veuillez sélectionner au moins trois layers."
-            )
-            return
+        method = self.method_selection.currentText()
 
-        # Affiche les informations pour débogage
-        print("Couches sélectionnées :", layer_names)
-        # Appel de la fonction externe avec les données
         try:
-            processing(layer_names, self.viewer, methode, self.parameters)
-            self.result_label.setText("Traitement terminé avec succès.")
+            processing(layer_names, self.viewer, method, self.parameters, darkfield_selected, flatfield_selected)
+            self.result_label.setText("Processing completed successfully.")
         except Exception as e:
-            self.result_label.setText(f"Erreur lors du traitement : {e}")
-            print(f"Erreur : {e}")
+            self.result_label.setText(f"Error during processing: {e}")
 
     def test_function(self):
         """
-        Affiche l'histogramme de la couche sélectionnée et la plage de ses valeurs.
+        Display the histogram of the selected layer.
         """
-        # Vérifie qu'une couche est sélectionnée dans le combobox "sample_selection"
         selected_layer = list(self.viewer.layers.selection)
         if not selected_layer:
-            self.result_label.setText(
-                "Veuillez sélectionner une couche dans 'Select sample'."
-            )
+            self.result_label.setText("Please select a layer in 'Select sample'.")
             return
 
-        # Récupère la première couche sélectionnée
         selected_layer = selected_layer[0]
         if not hasattr(selected_layer, "data"):
-            self.result_label.setText(
-                "La couche sélectionnée ne contient pas de données valides."
-            )
+            self.result_label.setText("The selected layer has no valid data.")
             return
 
-        # Récupère les données de la couche
-        data = selected_layer.data
+        data = selected_layer.data.ravel()
+        data_min, data_max = data.min(), data.max()
 
-        # Vérifie si les données sont 2D ou 3D et les aplati pour l'histogramme
-        if data.ndim > 1:
-            data = data.ravel()
-
-        # Calcul du minimum et maximum des données
-        data_min = data.min()
-        data_max = data.max()
-
-        # Affiche l'histogramme avec Matplotlib
         plt.figure(figsize=(8, 6))
-        plt.hist(data, bins=50, color="blue", alpha=0.7)
-        plt.title(
-            f"Histogramme de la couche : {selected_layer.name}\nPlage : {data_min:.2f} - {data_max:.2f}"
-        )
-        plt.xlabel("Valeurs de pixels")
-        plt.ylabel("Fréquence")
+        plt.hist(data, bins=50, alpha=0.7)
+        plt.title(f"Histogram for layer: {selected_layer.name}\nRange: {data_min:.2f} - {data_max:.2f}")
+        plt.xlabel("Pixel values")
+        plt.ylabel("Frequency")
         plt.grid(True)
         plt.show()
 
-        # Met à jour le label avec les valeurs min et max
-        self.result_label.setText(
-            f"Plage des valeurs : Min = {data_min:.2f}, Max = {data_max:.2f}"
-        )
+        self.result_label.setText(f"Value range: Min = {data_min:.2f}, Max = {data_max:.2f}")
 
     def update_variables_for_method(self):
         """
-        Met à jour les variables affichées en fonction de la méthode sélectionnée.
+        Update the dynamic variables based on the selected method.
         """
-        # Effacer les widgets existants
         while self.variables_layout.count():
             child = self.variables_layout.takeAt(0)
             if child.widget():
                 child.widget().deleteLater()
 
-        # Ajouter des widgets en fonction de la méthode sélectionnée
-        selected_method = self.methode_selection.currentText()
-        if selected_method == "lcs":
+        if self.method_selection.currentText() == "lcs":
             self.add_lcs_variables()
+
+        if self.method_selection.currentText() == "lcs_df":
+            self.add_lcs_df_variables()
 
     def add_lcs_variables(self):
         """
-        Ajoute les widgets pour les variables spécifiques à la méthode 'lcs'.
+        Add widgets for the 'lcs' method variables.
         """
-        # Paramètre alpha
-        self.alpha_label = QLabel("Alpha:")
-        self.variables_layout.addWidget(self.alpha_label)
+        self.variables_layout.addWidget(QLabel("Alpha:"))
         self.alpha_input = QLineEdit()
-        self.variables_layout.addWidget(self.alpha_input)
         self.alpha_input.textChanged.connect(self.update_parameters)
+        self.variables_layout.addWidget(self.alpha_input)
 
-        # Case à cocher pour weak_absorption
         self.weak_absorption_checkbox = QCheckBox("Weak Absorption")
-        self.variables_layout.addWidget(self.weak_absorption_checkbox)
         self.weak_absorption_checkbox.stateChanged.connect(self.update_parameters)
+        self.variables_layout.addWidget(self.weak_absorption_checkbox)
+
+    def add_lcs_df_variables(self):
+        """
+        Add widgets for the 'lcs_df' method variables.
+        """
+        self.variables_layout.addWidget(QLabel("Alpha:"))
+        self.alpha_input = QLineEdit()
+        self.alpha_input.textChanged.connect(self.update_parameters)
+        self.variables_layout.addWidget(self.alpha_input)
+
+        self.weak_absorption_checkbox = QCheckBox("Weak Absorption")
+        self.weak_absorption_checkbox.stateChanged.connect(self.update_parameters)
+        self.variables_layout.addWidget(self.weak_absorption_checkbox)
+
+    def toggle_field_phase(self, checked, layout, label_attr, selection_attr, label_text):
+        if checked == Qt.Checked:
+            if not getattr(self, label_attr):
+                setattr(self, label_attr, QLabel(label_text))
+                layout.addWidget(getattr(self, label_attr))
+            if not getattr(self, selection_attr):
+                combobox = QComboBox()
+                combobox.addItems(["Kottler", "Frankot_Chellappa"])
+                setattr(self, selection_attr, combobox)
+                layout.addWidget(combobox)
+        else:
+            widget_label = getattr(self, label_attr)
+            widget_selection = getattr(self, selection_attr)
+            if widget_label:
+                layout.removeWidget(widget_label)
+                widget_label.deleteLater()
+                setattr(self, label_attr, None)
+            if widget_selection:
+                layout.removeWidget(widget_selection)
+                widget_selection.deleteLater()
+                setattr(self, selection_attr, None)
+        self.layout().update()
 
     def update_parameters(self):
         """
-        Met à jour le dictionnaire des paramètres en fonction des valeurs des widgets.
+        Update the parameters dictionary based on widget values.
         """
         self.parameters['alpha'] = self.alpha_input.text()
         self.parameters['weak_absorption'] = self.weak_absorption_checkbox.isChecked()

@@ -6,7 +6,6 @@ from tkinter import messagebox, ttk
 
 from scipy.ndimage import median_filter
 
-
 def read_hdf5(paths):
     """
     Lit les données des fichiers HDF5/NXS avec une seule sélection de slice et dimension,
@@ -46,12 +45,18 @@ def read_hdf5(paths):
                     slice_info = slices_info[keys]
                     slice_number = slice_info["slice"]
                     dim = slice_info["dimension"]
+                    use_median = slice_info["use_median"]
 
-                    # Crée un index pour extraire la slice dans la dimension spécifiée
-                    index = [slice(None)] * 3
-                    index[dim] = slice_number
-                    # Charger les données selon l'index calculé
-                    data = np.array(h5file[keys][tuple(index)])
+                    if use_median:
+                        # Calculer l'image médiane le long de l'axe spécifié
+                        print("Using median filter on the slice.", path, keys)
+                        data = np.median(h5file[keys], axis=dim)
+                    else:
+                        # Crée un index pour extraire la slice dans la dimension spécifiée
+                        index = [slice(None)] * 3
+                        index[dim] = slice_number
+                        # Charger les données selon l'index calculé
+                        data = np.array(h5file[keys][tuple(index)])
 
                     # Ajouter les données au dataset correspondant à la clé
                     if keys not in dataset_layers:
@@ -80,6 +85,7 @@ def read_hdf5(paths):
         metadata = {
             "slice_number": slice_number,
             "dimension": dim,
+            "use_median": use_median,
             "paths": paths,
             "dataset_key": dataset_key,
             "multiscale": False,  # Toujours défini pour éviter des erreurs
@@ -94,7 +100,6 @@ def read_hdf5(paths):
         )
 
     return layers
-
 
 def find_datasets_with_dim_3(file, group=None, path="", results=None):
     """
@@ -131,7 +136,6 @@ def find_datasets_with_dim_3(file, group=None, path="", results=None):
                 )  # Ajoute le chemin et la forme
     return results
 
-
 def display_and_select_slices(file_path):
     """
     Affiche les informations sur toutes les images 3D dans une seule fenêtre Tkinter
@@ -146,7 +150,7 @@ def display_and_select_slices(file_path):
     -------
     dict
         Dictionnaire contenant les slices et dimensions sélectionnées pour chaque image.
-        Exemple : {"/group1/image1": {"slice": 10, "dimension": 1}}
+        Exemple : {"/group1/image1": {"slice": 10, "dimension": 1, "use_median": False}}
     """
 
     def submit_selection():
@@ -168,9 +172,13 @@ def display_and_select_slices(file_path):
                         f"Dimension invalide pour {path}. Choisissez 0, 1 ou 2."
                     )
 
+                # Récupérer l'option d'utilisation de la médiane
+                use_median_value = use_median_vars[i].get()
+
                 selections[path] = {
                     "slice": int(slice_value),
                     "dimension": int(dimension_value),
+                    "use_median": use_median_value,
                 }
             root.destroy()  # Ferme la fenêtre une fois validé
         except ValueError as e:
@@ -195,7 +203,7 @@ def display_and_select_slices(file_path):
                 root,
                 text="Sélectionnez une slice et une dimension pour chaque image 3D",
                 font=("Arial", 14),
-            ).grid(row=0, column=0, columnspan=4, pady=10)
+            ).grid(row=0, column=0, columnspan=5, pady=10)
 
             # Tableau des informations
             tk.Label(
@@ -210,10 +218,14 @@ def display_and_select_slices(file_path):
             tk.Label(root, text="Dimension", font=("Arial", 12, "bold")).grid(
                 row=1, column=3, padx=5, pady=5, sticky="w"
             )
+            tk.Label(root, text="Utiliser médiane", font=("Arial", 12, "bold")).grid(
+                row=1, column=4, padx=5, pady=5, sticky="w"
+            )
 
             # Initialisation des entrées
             slice_entries = []
             dimensions = []
+            use_median_vars = []
             selections = {}
             for i, (path, shape) in enumerate(datasets_3d):
                 tk.Label(root, text=path, wraplength=300).grid(
@@ -241,12 +253,18 @@ def display_and_select_slices(file_path):
                 dimension_menu.grid(row=i + 2, column=3, padx=5, pady=5)
                 dimensions.append(dimension_var)
 
+                # Checkbox pour l'utilisation de la médiane
+                use_median_var = tk.BooleanVar()
+                use_median_checkbox = ttk.Checkbutton(root, variable=use_median_var)
+                use_median_checkbox.grid(row=i + 2, column=4, padx=5, pady=5)
+                use_median_vars.append(use_median_var)
+
             # Bouton de validation
             submit_button = ttk.Button(
                 root, text="Valider", command=submit_selection
             )
             submit_button.grid(
-                row=len(datasets_3d) + 2, column=0, columnspan=4, pady=10
+                row=len(datasets_3d) + 2, column=0, columnspan=5, pady=10
             )
 
             root.mainloop()

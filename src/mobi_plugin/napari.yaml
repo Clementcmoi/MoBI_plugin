@@ -28,10 +28,10 @@ contributions:
   writers:
     - command: mobi-plugin.write_multiple
       layer_types: ['image*','labels*']
-      filename_extensions: []
+      filename_extensions: ['.tif']
     - command: mobi-plugin.write_single_image
       layer_types: ['image']
-      filename_extensions: ['.npy']
+      filename_extensions: ['.tif']
   sample_data:
     - command: mobi-plugin.make_sample_data
       display_name: MoBI
