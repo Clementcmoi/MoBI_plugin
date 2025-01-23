@@ -1,0 +1,6 @@
+Python 3.8+
+pip 21.0+
+venv
+napari 0.5.4
+
+Note: This plugin does not use external applications like CUDA.

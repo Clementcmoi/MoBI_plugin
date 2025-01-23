@@ -17,10 +17,6 @@ from qtpy.QtWidgets import (
 )
 from .widgets._processing import processing
 
-# import lcs_dirdf
-
-from popcorn import lcs_dirdf
-
 if TYPE_CHECKING:
     import napari
 
@@ -150,7 +146,7 @@ class StartProcessing(QWidget):
 
         method_layout.addWidget(QLabel("Select Method:"))
         self.method_selection = QComboBox()
-        self.method_selection.addItems(["lcs", "lcs_df", "cst_csvt"])
+        self.method_selection.addItems(["lcs", "lcs_df", "cst_csvt", "lcs_dirdf"])
         self.method_selection.currentIndexChanged.connect(self.update_variables_for_method)
         method_layout.addWidget(self.method_selection)
 
@@ -169,6 +165,9 @@ class StartProcessing(QWidget):
         checkbox_layout.addWidget(self.phase_retrieval_checkbox)
 
         phase_retrieval_layout.addLayout(checkbox_layout)
+        self.pad_checkbox = QCheckBox("Pad")
+        self.pad_checkbox.setVisible(False)
+        phase_retrieval_layout.addWidget(self.pad_checkbox)
         self.layout().addLayout(phase_retrieval_layout)
 
         self.phase_retrieval_label = None
@@ -235,10 +234,19 @@ class StartProcessing(QWidget):
             layer_names['flatfield'] = self.flatfield_selection.currentText()
             flatfield_selected = True
 
-        method = self.method_selection.currentText()
+        params = {
+            'layer_names': layer_names,
+            'viewer': self.viewer,
+            'method': self.method_selection.currentText(),
+            'parameters': self.parameters,
+            'darkfield_selected': darkfield_selected,
+            'flatfield_selected': flatfield_selected,
+            'phase_retrieval_method': self.phase_retrieval_selection.currentText() if self.phase_retrieval_selection else None,
+            'pad': self.pad_checkbox.isChecked()
+        }
 
         try:
-            processing(layer_names, self.viewer, method, self.parameters, darkfield_selected, flatfield_selected)
+            processing(params)
             self.result_label.setText("Processing completed successfully.")
         except Exception as e:
             self.result_label.setText(f"Error during processing: {e}")
@@ -285,6 +293,9 @@ class StartProcessing(QWidget):
         if self.method_selection.currentText() == "lcs_df":
             self.add_lcs_df_variables()
 
+        if self.method_selection.currentText() == "cst_csvt":
+            self.add_cst_csvt_variables()
+
     def add_lcs_variables(self):
         """
         Add widgets for the 'lcs' method variables.
@@ -311,6 +322,20 @@ class StartProcessing(QWidget):
         self.weak_absorption_checkbox.stateChanged.connect(self.update_parameters)
         self.variables_layout.addWidget(self.weak_absorption_checkbox)
 
+    def add_cst_csvt_variables(self):
+        """
+        Add widgets for the 'cst_csvt' method variables.
+        """
+        self.variables_layout.addWidget(QLabel("Window Size:"))
+        self.window_size_input = QLineEdit()
+        self.window_size_input.textChanged.connect(self.update_parameters)
+        self.variables_layout.addWidget(self.window_size_input)
+
+        self.variables_layout.addWidget(QLabel("Pixel Shift:"))
+        self.pixel_shift_input = QLineEdit()
+        self.pixel_shift_input.textChanged.connect(self.update_parameters)
+        self.variables_layout.addWidget(self.pixel_shift_input)
+
     def toggle_field_phase(self, checked, layout, label_attr, selection_attr, label_text):
         if checked == Qt.Checked:
             if not getattr(self, label_attr):
@@ -321,6 +346,7 @@ class StartProcessing(QWidget):
                 combobox.addItems(["Kottler", "Frankot_Chellappa"])
                 setattr(self, selection_attr, combobox)
                 layout.addWidget(combobox)
+            self.pad_checkbox.setVisible(True)
         else:
             widget_label = getattr(self, label_attr)
             widget_selection = getattr(self, selection_attr)
@@ -332,11 +358,18 @@ class StartProcessing(QWidget):
                 layout.removeWidget(widget_selection)
                 widget_selection.deleteLater()
                 setattr(self, selection_attr, None)
+            self.pad_checkbox.setVisible(False)
         self.layout().update()
 
     def update_parameters(self):
         """
         Update the parameters dictionary based on widget values.
         """
-        self.parameters['alpha'] = self.alpha_input.text()
-        self.parameters['weak_absorption'] = self.weak_absorption_checkbox.isChecked()
+
+        if self.method_selection.currentText() == "lcs" or self.method_selection.currentText() == "lcs_df":
+            self.parameters['alpha'] = self.alpha_input.text()
+            self.parameters['weak_absorption'] = self.weak_absorption_checkbox.isChecked()
+        
+        if self.method_selection.currentText() == "cst_csvt":
+            self.parameters['window_size'] = self.window_size_input.text()
+            self.parameters['pixel_shift'] = self.pixel_shift_input.text()

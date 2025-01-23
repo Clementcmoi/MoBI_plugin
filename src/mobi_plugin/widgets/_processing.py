@@ -1,46 +1,101 @@
 import napari
 import numpy as np
 from mbipy.numpy.phase_retrieval import lcs, lcs_df
+from mbipy.src.normal_integration.fourier import kottler, frankot
+from mbipy.cupy.phase_retrieval import cst_csvt
 
-def processing(layer_names, viewer, methode, parameters, darkfield_selected, flatfield_selected):
+def processing(params):
     """
     Fonction externe appelée par le widget.
     Parameters:
-    slice_selected (str): La valeur du slice sélectionné.
+    params (dict): Dictionnaire contenant les paramètres nécessaires.
     """
 
-    images = load_images_from_layers(viewer, layer_names)  # dict
+    images = load_images_from_layers(params['viewer'], params['layer_names'])  # dict
 
-    sample = images[layer_names['sample']]
-    ref = images[layer_names['reference']]
-    dark = images[layer_names['darkfield']] if darkfield_selected else None
-    flat = images[layer_names['flatfield']] if flatfield_selected else None
+    sample = images[params['layer_names']['sample']]
+    ref = images[params['layer_names']['reference']]
+    dark = images[params['layer_names']['darkfield']] if params['darkfield_selected'] else None
+    flat = images[params['layer_names']['flatfield']] if params['flatfield_selected'] else None
 
-    if darkfield_selected or flatfield_selected:
+    if params['darkfield_selected'] or params['flatfield_selected']:
         ref, sample = apply_corrections(ref, sample, dark, flat)
+
+    pad = "antisym" if params['pad'] else None
         
-    match methode:
+    match params['method']:
         case "lcs":
+            result_lcs = lcs(ref, sample, alpha=float(params['parameters']['alpha']), weak_absorption=params['parameters']['weak_absorption'])
+            name = ["abs", "dx", "dy"]
 
-            # Afficher les types des variables
+            if params['phase_retrieval_method'] is not None:
+                result_phase = phase_retrieval(result_lcs, params['phase_retrieval_method'], pad)
+                name.append("phase")
 
-            result_lcs = lcs(ref, sample, alpha=float(parameters['alpha']), weak_absorption=parameters['weak_absorption'])
+            for img_idx in range(len(name)):
+                if img_idx < 3:
+                    params['viewer'].add_image(result_lcs[:, :, img_idx], name=name[img_idx] + "_" + params['method'])
+                else:
+                    params['viewer'].add_image(result_phase, name=name[img_idx] + "_" + params['method'])
+
+        case "lcs_df":
+            result_lcs_df = lcs_df(ref, sample, alpha=float(params['parameters']['alpha']), weak_absorption=params['parameters']['weak_absorption'])
+            name = ["abs", "dx", "dy", "df"]
+
+            if params['phase_retrieval_method'] is not None:
+                result_phase = phase_retrieval(result_lcs_df, params['phase_retrieval_method'], pad)
+                name.append("phase")
+
+            for img_idx in range(len(name)):
+                if img_idx < 3:
+                    params['viewer'].add_image(result_lcs_df[:, :, img_idx], name=name[img_idx] + "_" + params['method'])
+                else:
+                    params['viewer'].add_image(result_phase, name=name[img_idx] + "_" + params['method'])
+
+        case "cst_csvt":
+            window_size = int(params['parameters']['window_size'])
+            pixel_shift = int(params['parameters']['pixel_shift'])
+
+            # Ensure window size and pixel shift are odd
+            if window_size % 2 == 0:
+                window_size += 1
+            if pixel_shift % 2 == 0:
+                pixel_shift += 1
+
+            result_cst_csvt = cst_csvt(
+                ref, 
+                sample, 
+                [window_size, window_size], 
+                [pixel_shift, pixel_shift],
+            )
+
+            print(result_cst_csvt.shape) # debug
 
             name = ["abs", "dx", "dy"]
 
-            for img in range(result_lcs.shape[2]):
-                viewer.add_image(result_lcs[:, :, img], name=name[img] + methode)
+            if params['phase_retrieval_method'] is not None:
+                result_phase = phase_retrieval(result_cst_csvt, params['phase_retrieval_method'], pad)
+                name.append("phase")
 
-        case "lcs_df":
-
-            result_lcs_df = lcs_df(ref, sample, alpha=float(parameters['alpha']), weak_absorption=parameters['weak_absorption'])
-
-            name = ["abs", "dx", "dy", "df"]
-
-            for img in range(result_lcs_df.shape[2]):
-                viewer.add_image(result_lcs_df[:, :, img], name=name[img] + methode)
+            for img_idx in range(len(name)):
+                if img_idx < 3:
+                    params['viewer'].add_image(result_cst_csvt[:, :, img_idx], name=name[img_idx] + "_" + params['method'])
+                else:
+                    params['viewer'].add_image(result_phase, name=name[img_idx] + "_" + params['method'])
 
     return 
+
+def phase_retrieval(result_lcs, phase_retrieval_method, pad):
+    gy = result_lcs[:, :, 2]
+    gx = result_lcs[:, :, 1]
+
+    match phase_retrieval_method:
+        case "Kottler":
+            result = kottler(gy, gx, pad=pad)
+        case "Frankot_Chellappa":
+            result = frankot(gy, gx, pad=pad)
+
+    return result
 
 def load_images_from_layers(viewer, layer_names):
     """
@@ -56,6 +111,7 @@ def load_images_from_layers(viewer, layer_names):
     images = {}
 
     for layer in viewer.layers:
+
         # Vérifiez si le layer est dans la liste sélectionnée (si une liste est fournie)
         if layer_names and layer.name not in layer_names.values():
             continue

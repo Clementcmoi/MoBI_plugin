@@ -1,6 +1,5 @@
 from .readers._hdf5_reader import read_hdf5
 
-
 def napari_get_reader(path):
     """Determine the appropriate reader function based on the file type.
 
