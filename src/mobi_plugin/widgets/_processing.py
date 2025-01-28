@@ -3,6 +3,22 @@ import numpy as np
 from mbipy.numpy.phase_retrieval import lcs, lcs_df
 from mbipy.src.normal_integration.fourier import kottler, frankot
 from mbipy.cupy.phase_retrieval import cst_csvt
+from .LCS_DirDF import processProjectionLCS_DDF
+
+class Experiment:
+    def __init__(self, sample_images, reference_images, nb_of_point, max_shift, pixel, dist_object_detector, dist_source_object, LCS_median_filter):
+        self.sample_images = sample_images
+        self.reference_images = reference_images
+        self.nb_of_point = nb_of_point
+        self.max_shift = max_shift
+        self.pixel = pixel
+        self.dist_object_detector = dist_object_detector
+        self.dist_source_object = dist_source_object
+        self.LCS_median_filter = LCS_median_filter
+
+    def getk(self):
+        # Placeholder for the actual implementation of getk
+        return 1.0
 
 def processing(params):
     """
@@ -10,7 +26,6 @@ def processing(params):
     Parameters:
     params (dict): Dictionnaire contenant les paramètres nécessaires.
     """
-    print(params) # debug
 
     images = load_images_from_layers(params['viewer'], params['layer_names'])  # dict
 
@@ -31,7 +46,6 @@ def processing(params):
 
             if params['phase_retrieval_method'] is not None:
                 result_phase = phase_retrieval(result_lcs, params['phase_retrieval_method'], pad)
-                print(result_phase.shape) # debug
                 name.append("phase")
 
             for img_idx in range(len(name)):
@@ -46,7 +60,6 @@ def processing(params):
 
             if params['phase_retrieval_method'] is not None:
                 result_phase = phase_retrieval(result_lcs_df, params['phase_retrieval_method'], pad)
-                print(result_phase.shape) # debug
                 name.append("phase")
 
             for img_idx in range(len(name)):
@@ -57,8 +70,6 @@ def processing(params):
 
         case "cst_csvt":
             result_cst_csvt = cst_csvt(ref, sample, int(params['parameters']['window_size']), (params['parameters']['pixel_shift']))
-
-            print(result_cst_csvt.shape) # debug
 
             name = ["abs", "dx", "dy"]
 
@@ -71,6 +82,24 @@ def processing(params):
                     params['viewer'].add_image(result_cst_csvt[:, :, img_idx], name=name[img_idx] + "_" + params['method'])
                 else:
                     params['viewer'].add_image(result_phase, name=name[img_idx] + "_" + params['method'])
+
+        case "lcs_dirdf":
+            experiment = Experiment(
+                sample_images=sample,
+                reference_images=ref,
+                nb_of_point=params['parameters']['nb_of_point'],
+                max_shift=params['parameters']['max_shift'],
+                pixel=params['parameters']['pixel'],
+                dist_object_detector=params['parameters']['dist_object_detector'],
+                dist_source_object=params['parameters']['dist_source_object'],
+                LCS_median_filter=params['parameters']['LCS_median_filter']
+            )
+            result_lcs_dirdf = processProjectionLCS_DDF(experiment)
+            name = ["dx", "dy", "phiFC", "phiK", "absorption", "Deff_xx", "Deff_yy", "Deff_xy", "excentricity", "area", "oriented_DF_exc", "oriented_DF_area", "oriented_DF_norm", "theta", "local_orientation_strength"]
+
+            for key in result_lcs_dirdf:
+                params['viewer'].add_image(result_lcs_dirdf[key], name=key + "_" + params['method'])
+           
 
     return 
 

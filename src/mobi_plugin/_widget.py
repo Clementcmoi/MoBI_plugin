@@ -298,6 +298,9 @@ class StartProcessing(QWidget):
         if self.method_selection.currentText() == "cst_csvt":
             self.add_cst_csvt_variables()
 
+        if self.method_selection.currentText() == "lcs_dirdf":
+            self.add_lcs_dirdf_variables()
+
     def add_lcs_variables(self):
         """
         Add widgets for the 'lcs' method variables.
@@ -338,6 +341,40 @@ class StartProcessing(QWidget):
         self.pixel_shift_input.textChanged.connect(self.update_parameters)
         self.variables_layout.addWidget(self.pixel_shift_input)
 
+    def add_lcs_dirdf_variables(self):
+        """
+        Add widgets for the 'lcs_dirdf' method variables.
+        """
+        self.variables_layout.addWidget(QLabel("Number of Points:"))
+        self.nb_of_point_input = QLineEdit()
+        self.nb_of_point_input.textChanged.connect(self.update_parameters)
+        self.variables_layout.addWidget(self.nb_of_point_input)
+
+        self.variables_layout.addWidget(QLabel("Max Shift:"))
+        self.max_shift_input = QLineEdit()
+        self.max_shift_input.textChanged.connect(self.update_parameters)
+        self.variables_layout.addWidget(self.max_shift_input)
+
+        self.variables_layout.addWidget(QLabel("Pixel Size:"))
+        self.pixel_input = QLineEdit()
+        self.pixel_input.textChanged.connect(self.update_parameters)
+        self.variables_layout.addWidget(self.pixel_input)
+
+        self.variables_layout.addWidget(QLabel("Distance Object-Detector:"))
+        self.dist_object_detector_input = QLineEdit()
+        self.dist_object_detector_input.textChanged.connect(self.update_parameters)
+        self.variables_layout.addWidget(self.dist_object_detector_input)
+
+        self.variables_layout.addWidget(QLabel("Distance Source-Object:"))
+        self.dist_source_object_input = QLineEdit()
+        self.dist_source_object_input.textChanged.connect(self.update_parameters)
+        self.variables_layout.addWidget(self.dist_source_object_input)
+
+        self.variables_layout.addWidget(QLabel("LCS Median Filter:"))
+        self.LCS_median_filter_input = QLineEdit()
+        self.LCS_median_filter_input.textChanged.connect(self.update_parameters)
+        self.variables_layout.addWidget(self.LCS_median_filter_input)
+
     def toggle_field_phase(self, checked, layout, label_attr, selection_attr, label_text):
         if checked == Qt.Checked:
             if not getattr(self, label_attr):
@@ -375,3 +412,11 @@ class StartProcessing(QWidget):
         if self.method_selection.currentText() == "cst_csvt":
             self.parameters['window_size'] = self.window_size_input.text()
             self.parameters['pixel_shift'] = self.pixel_shift_input.text()
+
+        if self.method_selection.currentText() == "lcs_dirdf":
+            self.parameters['nb_of_point'] = self.nb_of_point_input.text()
+            self.parameters['max_shift'] = self.max_shift_input.text()
+            self.parameters['pixel'] = self.pixel_input.text()
+            self.parameters['dist_object_detector'] = self.dist_object_detector_input.text()
+            self.parameters['dist_source_object'] = self.dist_source_object_input.text()
+            self.parameters['LCS_median_filter'] = self.LCS_median_filter_input.text()
