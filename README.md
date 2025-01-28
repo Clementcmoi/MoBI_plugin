@@ -16,8 +16,6 @@ https://napari.org/stable/plugins/index.html
 
 ## Installation
 
-### Prerequisites
-
 This plugin uses the `cupy` library for accelerated GPU/CPU computations. You need to install `cupy` manually based on your hardware configuration:
 
 This plugin requires `napari` and `mbipy`. You need to clone and install `mbipy` with `pip`:
