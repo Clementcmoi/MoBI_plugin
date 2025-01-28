@@ -25,6 +25,7 @@ var/
 *.egg
 popcorn/
 mbipy/
+test/
 
 # PyInstaller
 *.manifest
