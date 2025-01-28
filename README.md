@@ -1,8 +1,10 @@
 # mobi-plugin
 
-[![License MIT](https://img.shields.io/pypi/l/mobi-plugin.svg?color=green)](https://github.com/https://github.com/Clementcmoi/mobi-plugin/raw/main/LICENSE)
+[![License MIT](https://img.shields.io/pypi/l/mobi-plugin.svg?color=green)](https://github.com/Clementcmoi/mobi-plugin/raw/main/LICENSE)
 [![PyPI](https://img.shields.io/pypi/v/mobi-plugin.svg?color=green)](https://pypi.org/project/mobi-plugin)
 [![Python Version](https://img.shields.io/pypi/pyversions/mobi-plugin.svg?color=green)](https://python.org)
+[![tests](https://github.com/Clementcmoi/mobi-plugin/workflows/tests/badge.svg)](https://github.com/Clementcmoi/mobi-plugin/actions)
+[![codecov](https://codecov.io/gh/Clementcmoi/mobi-plugin/branch/main/graph/badge.svg)](https://codecov.io/gh/Clementcmoi/mobi-plugin)
 [![napari hub](https://img.shields.io/endpoint?url=https://api.napari-hub.org/shields/mobi-plugin)](https://napari-hub.org/plugins/mobi-plugin)
 
 Interface popcorn/mbipy
@@ -45,7 +47,6 @@ To install the latest development version:
 pip install git+https://github.com/Clementcmoi/mobi-plugin.git
 ```
 
-
 ## Contributing
 
 Contributions are very welcome. Tests can be run with [tox], please ensure
@@ -71,7 +72,7 @@ If you encounter any problems, please [file an issue] along with a detailed desc
 [Mozilla Public License 2.0]: https://www.mozilla.org/media/MPL/2.0/index.txt
 [napari-plugin-template]: https://github.com/napari/napari-plugin-template
 
-[file an issue]: https://github.com/https://github.com/Clementcmoi/mobi-plugin/issues
+[file an issue]: https://github.com/Clementcmoi/mobi-plugin/issues
 
 [napari]: https://github.com/napari/napari
 [tox]: https://tox.readthedocs.io/en/latest/
