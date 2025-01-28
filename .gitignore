@@ -9,6 +9,8 @@ __pycache__/
 # Distribution / packaging
 .Python
 env/
+venv/
+napari_env/
 build/
 develop-eggs/
 dist/
@@ -23,6 +25,8 @@ var/
 *.egg-info/
 .installed.cfg
 *.egg
+
+# Ignorer les sous-modules ou dépendances locales
 popcorn/
 mbipy/
 test/
@@ -45,43 +49,47 @@ nosetests.xml
 coverage.xml
 *,cover
 .hypothesis/
-.napari_cache
+.napari_cache/
 
 # Translations
 *.mo
 *.pot
 
-# Django stuff:
+# Logs & fichiers spécifiques aux frameworks
 *.log
 local_settings.py
 
 # Flask instance folder
 instance/
 
-# Sphinx documentation
+# Documentation (Sphinx, MkDocs)
 docs/_build/
-
-# MkDocs documentation
-/site/
+site/
 
 # PyBuilder
 target/
 
-# Pycharm and VSCode
+# Environnements d'IDE (Pycharm et VSCode)
 .idea/
-venv/
 .vscode/
 
-# IPython Notebook
-.ipynb_checkpoints
+# Fichiers IPython Notebook
+.ipynb_checkpoints/
 
 # pyenv
 .python-version
 
-# OS
+# Fichiers OS inutiles
 .DS_Store
+Thumbs.db
 
-# written by setuptools_scm
+# Fichiers générés par setuptools_scm
 **/_version.py
 
+# Exclure les fichiers de données volumineux
 Data/
+data/
+*.h5  # Fichiers HDF5
+*.npy # Fichiers NumPy
+*.csv # Fichiers CSV de données
+*.json # Fichiers JSON de configuration
