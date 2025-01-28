@@ -37,7 +37,7 @@ pip install .
 To install the latest development version:
 
 ```bash
-pip install pip install git+https://github.com/Clementcmoi/MoBI_plugin.git
+pip install git+https://github.com/Clementcmoi/MoBI_plugin.git
 ```
 
 ## Contributing
