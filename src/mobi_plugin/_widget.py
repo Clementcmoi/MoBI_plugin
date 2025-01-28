@@ -13,7 +13,8 @@ from qtpy.QtWidgets import (
     QComboBox, 
     QCheckBox,
     QSpacerItem, 
-    QSizePolicy
+    QSizePolicy,
+    QInputDialog
 )
 from .widgets._processing import processing
 
@@ -62,6 +63,7 @@ class StartProcessing(QWidget):
         self.viewer.layers.events.inserted.connect(self.update_layer_selections)
         self.viewer.layers.events.removed.connect(self.update_layer_selections)
         self.viewer.layers.events.changed.connect(self.update_layer_selections)
+        self.viewer.layers.events.reordered.connect(self.update_layer_selections)
 
     def add_layer_selection_section(self):
         """
@@ -206,11 +208,11 @@ class StartProcessing(QWidget):
             combobox.clear()
             combobox.addItems(layers)
 
-        if self.darkfield_checkbox.isChecked():
+        if self.darkfield_checkbox.isChecked() and self.darkfield_selection:
             self.darkfield_selection.clear()
             self.darkfield_selection.addItems(layers)
         
-        if self.flatfield_checkbox.isChecked():
+        if self.flatfield_checkbox.isChecked() and self.flatfield_selection:
             self.flatfield_selection.clear()
             self.flatfield_selection.addItems(layers)
 

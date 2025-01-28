@@ -23,15 +23,29 @@ https://napari.org/stable/plugins/index.html
 
 ## Installation
 
+### Prerequisites
+
+This plugin uses the `cupy` library for accelerated GPU/CPU computations. You need to install `cupy` manually based on your hardware configuration:
+
 You can install `mobi-plugin` via [pip]:
 
-    pip install mobi-plugin
+```bash
+pip install mobi-plugin
+```
 
+This plugin requires `napari` and `mbipy`. You need to clone and install `mbipy` with `pip`:
 
+```bash
+git clone https://github.com/Nin17/mbipy.git
+cd mbipy
+pip install .
+```
 
-To install latest development version :
+To install the latest development version:
 
-    pip install git+https://github.com/https://github.com/Clementcmoi/mobi-plugin.git
+```bash
+pip install git+https://github.com/Clementcmoi/mobi-plugin.git
+```
 
 
 ## Contributing

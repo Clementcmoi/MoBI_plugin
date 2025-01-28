@@ -10,6 +10,7 @@ def processing(params):
     Parameters:
     params (dict): Dictionnaire contenant les paramètres nécessaires.
     """
+    print(params) # debug
 
     images = load_images_from_layers(params['viewer'], params['layer_names'])  # dict
 
@@ -30,6 +31,7 @@ def processing(params):
 
             if params['phase_retrieval_method'] is not None:
                 result_phase = phase_retrieval(result_lcs, params['phase_retrieval_method'], pad)
+                print(result_phase.shape) # debug
                 name.append("phase")
 
             for img_idx in range(len(name)):
@@ -44,30 +46,17 @@ def processing(params):
 
             if params['phase_retrieval_method'] is not None:
                 result_phase = phase_retrieval(result_lcs_df, params['phase_retrieval_method'], pad)
+                print(result_phase.shape) # debug
                 name.append("phase")
 
             for img_idx in range(len(name)):
-                if img_idx < 3:
+                if img_idx < 4:
                     params['viewer'].add_image(result_lcs_df[:, :, img_idx], name=name[img_idx] + "_" + params['method'])
                 else:
                     params['viewer'].add_image(result_phase, name=name[img_idx] + "_" + params['method'])
 
         case "cst_csvt":
-            window_size = int(params['parameters']['window_size'])
-            pixel_shift = int(params['parameters']['pixel_shift'])
-
-            # Ensure window size and pixel shift are odd
-            if window_size % 2 == 0:
-                window_size += 1
-            if pixel_shift % 2 == 0:
-                pixel_shift += 1
-
-            result_cst_csvt = cst_csvt(
-                ref, 
-                sample, 
-                [window_size, window_size], 
-                [pixel_shift, pixel_shift],
-            )
+            result_cst_csvt = cst_csvt(ref, sample, int(params['parameters']['window_size']), (params['parameters']['pixel_shift']))
 
             print(result_cst_csvt.shape) # debug
 
