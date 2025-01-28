@@ -1,11 +1,9 @@
 # mobi-plugin
 
-[![License MIT](https://img.shields.io/pypi/l/mobi-plugin.svg?color=green)](https://github.com/Clementcmoi/mobi-plugin/raw/main/LICENSE)
+[![License MIT](https://img.shields.io/pypi/l/mobi-plugin.svg?color=green)](https://github.com/Clementcmoi/MoBI_plugin/blob/main/LICENSE)
 [![PyPI](https://img.shields.io/pypi/v/mobi-plugin.svg?color=green)](https://pypi.org/project/mobi-plugin)
 [![Python Version](https://img.shields.io/pypi/pyversions/mobi-plugin.svg?color=green)](https://python.org)
-[![tests](https://github.com/Clementcmoi/mobi-plugin/workflows/tests/badge.svg)](https://github.com/Clementcmoi/mobi-plugin/actions)
-[![codecov](https://codecov.io/gh/Clementcmoi/mobi-plugin/branch/main/graph/badge.svg)](https://codecov.io/gh/Clementcmoi/mobi-plugin)
-[![napari hub](https://img.shields.io/endpoint?url=https://api.napari-hub.org/shields/mobi-plugin)](https://napari-hub.org/plugins/mobi-plugin)
+[![codecov](https://codecov.io/gh/Clementcmoi/MoBI_plugin/branch/main/graph/badge.svg)](https://codecov.io/gh/Clementcmoi/MoBI_plugin)
 
 Interface popcorn/mbipy
 
