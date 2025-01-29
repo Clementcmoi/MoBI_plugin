@@ -33,6 +33,10 @@ This plugin uses the `cupy` library for accelerated GPU/CPU computations. You ne
 This plugin requires `napari` and `mbipy`. You need to clone and install `mbipy` with `pip`:
 
 ```bash
+python -m pip install "napari[all]"
+```
+
+```bash
 git clone https://github.com/Nin17/mbipy.git
 cd mbipy
 pip install .
