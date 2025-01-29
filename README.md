@@ -14,6 +14,18 @@ and review the napari docs for plugin developers:
 https://napari.org/stable/plugins/index.html
 -->
 
+## Recommended Setup
+
+It is recommended to work within a virtual environment to manage dependencies and avoid conflicts. You can create a virtual environment using `venv`:
+
+```bash
+python -m venv myenv
+source myenv/bin/activate  # On Windows use `myenv\Scripts\activate`
+```
+
+Then, install the required packages within the virtual environment.
+
+
 ## Installation
 
 This plugin uses the `cupy` library for accelerated GPU/CPU computations. You need to install `cupy` manually based on your hardware configuration:
@@ -31,7 +43,6 @@ To install the latest development version:
 ```bash
 pip install git+https://github.com/Clementcmoi/MoBI_plugin.git
 ```
-
 ## Contributing
 
 Contributions are very welcome. Tests can be run with [tox], please ensure
