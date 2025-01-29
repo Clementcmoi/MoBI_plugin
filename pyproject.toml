@@ -69,6 +69,7 @@ dependencies = [
         "PyWavelets",
         "ptwt",
         "fabio",
+        "SimpleITK",
 ]
 
 [project.optional-dependencies]

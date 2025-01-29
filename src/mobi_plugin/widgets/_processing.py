@@ -87,16 +87,19 @@ def processing(params):
             experiment = Experiment(
                 sample_images=sample,
                 reference_images=ref,
-                nb_of_point=params['parameters']['nb_of_point'],
+                nb_of_point=sample.shape[0],
                 max_shift=params['parameters']['max_shift'],
                 pixel=params['parameters']['pixel'],
                 dist_object_detector=params['parameters']['dist_object_detector'],
                 dist_source_object=params['parameters']['dist_source_object'],
                 LCS_median_filter=params['parameters']['LCS_median_filter']
             )
-            result_lcs_dirdf = processProjectionLCS_DDF(experiment)
-            name = ["dx", "dy", "phiFC", "phiK", "absorption", "Deff_xx", "Deff_yy", "Deff_xy", "excentricity", "area", "oriented_DF_exc", "oriented_DF_area", "oriented_DF_norm", "theta", "local_orientation_strength"]
 
+            print("Processing LCS_DirDF") # debug
+            result_lcs_dirdf = processProjectionLCS_DDF(experiment)
+            print("Processing LCS_DirDF done") # debug
+            name = ["dx", "dy", "phiFC", "phiK", "absorption", "Deff_xx", "Deff_yy", "Deff_xy", "excentricity", "area", "oriented_DF_exc", "oriented_DF_area", "oriented_DF_norm", "theta", "local_orientation_strength"]
+            print("Adding images to viewer") # debug
             for key in result_lcs_dirdf:
                 params['viewer'].add_image(result_lcs_dirdf[key], name=key + "_" + params['method'])
            

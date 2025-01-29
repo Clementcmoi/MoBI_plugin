@@ -6,15 +6,11 @@ Created on Mon Mar 15 13:46:27 2021.
 @author: quenot
 """
 import numpy as np
-import frankotchellappa as fc
-from scipy.ndimage.filters import gaussian_filter, median_filter
-from scipy.ndimage import laplace
-from matplotlib import pyplot as plt
-from skimage import color, data, restoration
-from fourier_integration import kottler, frankot_chellappa
-from matplotlib.colors import hsv_to_rgb, rgb_to_hsv
+from scipy.ndimage.filters import median_filter
+from matplotlib.colors import hsv_to_rgb
 from numba import jit
-from phase_integration import fourier_integration, ls_integration
+from mbipy.src.normal_integration.fourier import kottler, frankot as fc
+from .fourier_integration import fourier_solver
 
 from scipy import signal
 
@@ -55,6 +51,7 @@ def LCS_DDF(experiment):
 
     #Prepare system matrices
     for i in range(experiment.nb_of_point):
+
         #Right handSide
         # gX_IrIr,gY_IrIr=np.gradient(experiment.reference_images[i])
         # lapIr=laplace(experiment.reference_images[i])
@@ -70,6 +67,7 @@ def LCS_DDF(experiment):
 
     #Solving system for each pixel 
     for i in range(Nx):
+
         for j in range(Ny):
             a=RHS[:,:,i,j]
             b=LHS[:,i,j]
@@ -206,8 +204,8 @@ def processProjectionLCS_DDF(experiment):
     # The sampling step for the gradient is the magnified pixel size
     magnificationFactor = (experiment.dist_object_detector + experiment.dist_source_object) / experiment.dist_source_object
     gradientSampling = experiment.pixel / magnificationFactor
-    phiFC = fc.frankotchellappa(dphix, dphiy, True)*gradientSampling
-    phiK = fourier_integration.fourier_solver(dphix, dphiy, gradientSampling, gradientSampling, solver='kottler')
+    phiFC = fc(dphix, dphiy, 'antisym')*gradientSampling
+    phiK = fourier_solver(dphix, dphiy, gradientSampling, gradientSampling, solver='kottler')
     #phiLS = ls_integration.least_squares(dphix, dphiy, gradientSampling, gradientSampling, model='southwell')
     
     if (padForIntegration and padSize > 0):

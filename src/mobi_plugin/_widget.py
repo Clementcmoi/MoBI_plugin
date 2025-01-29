@@ -345,11 +345,6 @@ class StartProcessing(QWidget):
         """
         Add widgets for the 'lcs_dirdf' method variables.
         """
-        self.variables_layout.addWidget(QLabel("Number of Points:"))
-        self.nb_of_point_input = QLineEdit()
-        self.nb_of_point_input.textChanged.connect(self.update_parameters)
-        self.variables_layout.addWidget(self.nb_of_point_input)
-
         self.variables_layout.addWidget(QLabel("Max Shift:"))
         self.max_shift_input = QLineEdit()
         self.max_shift_input.textChanged.connect(self.update_parameters)
@@ -404,7 +399,6 @@ class StartProcessing(QWidget):
         """
         Update the parameters dictionary based on widget values.
         """
-
         if self.method_selection.currentText() == "lcs" or self.method_selection.currentText() == "lcs_df":
             self.parameters['alpha'] = self.alpha_input.text()
             self.parameters['weak_absorption'] = self.weak_absorption_checkbox.isChecked()
@@ -414,9 +408,13 @@ class StartProcessing(QWidget):
             self.parameters['pixel_shift'] = self.pixel_shift_input.text()
 
         if self.method_selection.currentText() == "lcs_dirdf":
-            self.parameters['nb_of_point'] = self.nb_of_point_input.text()
-            self.parameters['max_shift'] = self.max_shift_input.text()
-            self.parameters['pixel'] = self.pixel_input.text()
-            self.parameters['dist_object_detector'] = self.dist_object_detector_input.text()
-            self.parameters['dist_source_object'] = self.dist_source_object_input.text()
-            self.parameters['LCS_median_filter'] = self.LCS_median_filter_input.text()
+            if self.max_shift_input.text():
+                self.parameters['max_shift'] = int(self.max_shift_input.text())
+            if self.pixel_input.text():
+                self.parameters['pixel'] = float(self.pixel_input.text())
+            if self.dist_object_detector_input.text():
+                self.parameters['dist_object_detector'] = float(self.dist_object_detector_input.text())
+            if self.dist_source_object_input.text():
+                self.parameters['dist_source_object'] = float(self.dist_source_object_input.text())
+            if self.LCS_median_filter_input.text():
+                self.parameters['LCS_median_filter'] = int(self.LCS_median_filter_input.text())
