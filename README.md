@@ -1,6 +1,6 @@
 # mobi-plugin
 
-Interface popcorn/mbipy
+Popcorn/mbipy interface on Napari for synchrotron experiments
 
 ----------------------------------
 
