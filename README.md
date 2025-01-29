@@ -25,6 +25,13 @@ source myenv/bin/activate  # On Windows use `myenv\Scripts\activate`
 
 Then, install the required packages within the virtual environment.
 
+## Python Version
+
+This plugin requires Python 3.7 or higher. Ensure you have the correct version installed:
+
+```bash
+python --version
+```
 
 ## Installation
 
@@ -79,3 +86,4 @@ If you encounter any problems, please [file an issue] along with a detailed desc
 [tox]: https://tox.readthedocs.io/en/latest/
 [pip]: https://pypi.org/project/pip/
 [PyPI]: https://pypi.org/
+````
