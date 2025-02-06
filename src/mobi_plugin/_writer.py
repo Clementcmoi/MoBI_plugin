@@ -44,8 +44,15 @@ def write_single_image(path: str, data: Any, meta: dict) -> list[str]:
     print("Dimension", data.ndim)
 
     if data.ndim >= 3:
-        print("Saving first slice of a 3D image : ", data.shape)
-        saved_paths.append(write_tif(path, data[0], meta))
+        print("Saving all slices of a 3D image : ", data.shape)
+        # Create a directory for the slices
+        dir_path = Path(path).with_suffix('')
+        dir_path.mkdir(parents=True, exist_ok=True)
+
+        # Save each slice as a separate file
+        for i in range(data.shape[0]):
+            slice_path = dir_path / f"slice_{i}.tif"
+            saved_paths.append(write_tif(slice_path, data[i], meta))
                 
     else:
         print("Saving 2D image : ", data.shape)

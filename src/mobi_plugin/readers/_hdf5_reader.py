@@ -31,7 +31,12 @@ def read_hdf5(paths):
     # Préparation des layers
     dataset_layers = {}  # Stockera les images par clé (dataset_key)
 
+    shift = 0
+
     for path in paths:
+
+        shift += 1
+        
         with h5py.File(path, "r") as h5file:
             print(f"Traitement du fichier : {path}")
             datasets_3d = find_datasets_with_dim_3(h5file)
@@ -43,7 +48,7 @@ def read_hdf5(paths):
             for keys, shape in datasets_3d:
                 if keys in slices_info:
                     slice_info = slices_info[keys]
-                    slice_number = slice_info["slice"]
+                    slice_number = slice_info["slice"] + shift
                     dim = slice_info["dimension"]
                     use_median = slice_info["use_median"]
 
