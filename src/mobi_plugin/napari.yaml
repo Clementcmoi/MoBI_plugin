@@ -21,7 +21,7 @@ contributions:
       title: Make QWidget
   readers:
     - command: mobi-plugin.get_reader
-      accepts_directories: false
+      accepts_directories: true
       filename_patterns: ['*.tdf', '*.nxs', '*.edf']
   writers:
     - command: mobi-plugin.write_multiple

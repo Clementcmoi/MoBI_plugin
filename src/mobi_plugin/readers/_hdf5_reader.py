@@ -1,5 +1,6 @@
 import h5py
 import numpy as np
+import os
 
 import tkinter as tk
 from tkinter import messagebox, ttk
@@ -23,6 +24,21 @@ def read_hdf5(paths):
     """
     if isinstance(paths, str):
         paths = [paths]
+
+    # Handle directories
+    all_files = []
+    filter_text = ""
+    for path in paths:
+        if os.path.isdir(path):
+            filter_text = get_filter_text()
+            for root, _, files in os.walk(path):
+                for file in files:
+                    if (file.endswith(".tdf") or file.endswith(".nxs")) and filter_text in file:
+                        all_files.append(os.path.join(root, file))
+        else:
+            all_files.append(path)
+
+    paths = all_files
 
     # Sélection unique des slices et dimensions
     print("Sélection de la slice et de la dimension pour tous les fichiers.")
@@ -277,3 +293,30 @@ def display_and_select_slices(file_path):
     except Exception as e:
         messagebox.showerror("Erreur", f"Une erreur s'est produite : {e}")
         return {}
+
+def get_filter_text():
+    """
+    Ouvre une fenêtre Tkinter pour entrer le texte de filtrage des fichiers.
+
+    Returns
+    -------
+    str
+        Le texte de filtrage entré par l'utilisateur.
+    """
+    def submit_text():
+        nonlocal filter_text
+        filter_text = entry.get()
+        root.destroy()
+
+    filter_text = ""
+    root = tk.Tk()
+    root.title("Entrer le texte de filtrage")
+
+    tk.Label(root, text="Entrez le texte à rechercher dans les noms de fichiers:").pack(pady=10)
+    entry = ttk.Entry(root, width=40)
+    entry.pack(pady=5)
+    submit_button = ttk.Button(root, text="Valider", command=submit_text)
+    submit_button.pack(pady=10)
+
+    root.mainloop()
+    return filter_text

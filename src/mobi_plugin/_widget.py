@@ -418,3 +418,18 @@ class StartProcessing(QWidget):
                 self.parameters['dist_source_object'] = float(self.dist_source_object_input.text())
             if self.LCS_median_filter_input.text():
                 self.parameters['LCS_median_filter'] = int(self.LCS_median_filter_input.text())
+
+
+class OpenSOLEIL25(QWidget):
+
+    """
+    Custom widget for processing data in Napari.
+    """
+
+    def __init__(self, viewer: "napari.viewer.Viewer"):
+        super().__init__()
+        self.viewer = viewer
+        self.parameters = {}
+
+        # self.setup_ui()
+        # self.connect_signals() 
