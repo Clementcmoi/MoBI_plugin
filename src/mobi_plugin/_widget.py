@@ -148,7 +148,7 @@ class StartProcessing(QWidget):
 
         method_layout.addWidget(QLabel("Select Method:"))
         self.method_selection = QComboBox()
-        self.method_selection.addItems(["lcs", "lcs_df", "cst_csvt", "lcs_dirdf"])
+        self.method_selection.addItems(["lcs", "lcs_df", "cst_csvt", "lcs_dirdf", "MISTI", "MISTII", "Pavlov_2020", "XSVT", "ReverseFlow", "Speckle_matching"])
         self.method_selection.currentIndexChanged.connect(self.update_variables_for_method)
         method_layout.addWidget(self.method_selection)
 
@@ -418,18 +418,3 @@ class StartProcessing(QWidget):
                 self.parameters['dist_source_object'] = float(self.dist_source_object_input.text())
             if self.LCS_median_filter_input.text():
                 self.parameters['LCS_median_filter'] = int(self.LCS_median_filter_input.text())
-
-
-class OpenSOLEIL25(QWidget):
-
-    """
-    Custom widget for processing data in Napari.
-    """
-
-    def __init__(self, viewer: "napari.viewer.Viewer"):
-        super().__init__()
-        self.viewer = viewer
-        self.parameters = {}
-
-        # self.setup_ui()
-        # self.connect_signals() 

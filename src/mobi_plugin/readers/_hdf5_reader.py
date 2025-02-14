@@ -1,5 +1,8 @@
 import h5py
 import numpy as np
+
+import glob
+from tkinter import simpledialog
 import os
 
 import tkinter as tk
@@ -22,23 +25,14 @@ def read_hdf5(paths):
     list
         Une liste contenant des tuples pour chaque dataset.
     """
+
     if isinstance(paths, str):
         paths = [paths]
 
-    # Handle directories
-    all_files = []
-    filter_text = ""
-    for path in paths:
-        if os.path.isdir(path):
-            filter_text = get_filter_text()
-            for root, _, files in os.walk(path):
-                for file in files:
-                    if (file.endswith(".tdf") or file.endswith(".nxs")) and filter_text in file:
-                        all_files.append(os.path.join(root, file))
-        else:
-            all_files.append(path)
+    if os.path.isdir(paths[0]):
+        paths = read_hdf5_folder(paths[0])
 
-    paths = all_files
+    print("Paths found:", paths)
 
     # Sélection unique des slices et dimensions
     print("Sélection de la slice et de la dimension pour tous les fichiers.")
@@ -47,11 +41,7 @@ def read_hdf5(paths):
     # Préparation des layers
     dataset_layers = {}  # Stockera les images par clé (dataset_key)
 
-    shift = 0
-
     for path in paths:
-
-        shift += 1
         
         with h5py.File(path, "r") as h5file:
             print(f"Traitement du fichier : {path}")
@@ -64,7 +54,7 @@ def read_hdf5(paths):
             for keys, shape in datasets_3d:
                 if keys in slices_info:
                     slice_info = slices_info[keys]
-                    slice_number = slice_info["slice"] + shift
+                    slice_number = slice_info["slice"]
                     dim = slice_info["dimension"]
                     use_median = slice_info["use_median"]
 
@@ -294,29 +284,30 @@ def display_and_select_slices(file_path):
         messagebox.showerror("Erreur", f"Une erreur s'est produite : {e}")
         return {}
 
-def get_filter_text():
-    """
-    Ouvre une fenêtre Tkinter pour entrer le texte de filtrage des fichiers.
 
-    Returns
-    -------
-    str
-        Le texte de filtrage entré par l'utilisateur.
+def read_hdf5_folder(path):
     """
-    def submit_text():
-        nonlocal filter_text
-        filter_text = entry.get()
-        root.destroy()
+    Cherche les fichiers HDF5 contenus dans toute l'arborescence en utilisant glob.
 
-    filter_text = ""
+    Une fenêtre s'ouvre pour demander à l'utilisateur une partie du nom des fichiers à ouvrir.
+
+    Parameters:
+    path (str): Chemin du dossier où chercher les fichiers.
+
+    Returns:
+    list: Une liste contenant les chemins des fichiers à traiter.
+    """
     root = tk.Tk()
-    root.title("Entrer le texte de filtrage")
+    root.withdraw()
+    text = simpledialog.askstring(
+        "Recherche de fichiers HDF5",
+        "Entrez une partie du nom des fichiers HDF5 à ouvrir :",
+    )
+    if not text:
+        return []
 
-    tk.Label(root, text="Entrez le texte à rechercher dans les noms de fichiers:").pack(pady=10)
-    entry = ttk.Entry(root, width=40)
-    entry.pack(pady=5)
-    submit_button = ttk.Button(root, text="Valider", command=submit_text)
-    submit_button.pack(pady=10)
+    paths = glob.glob(path + r"\*\*" + text + r"*.tdf")
 
-    root.mainloop()
-    return filter_text
+    print("Paths found:", paths)
+
+    return paths

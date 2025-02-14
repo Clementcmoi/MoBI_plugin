@@ -3,7 +3,7 @@ import numpy as np
 from mbipy.numpy.phase_retrieval import lcs, lcs_df
 from mbipy.src.normal_integration.fourier import kottler, frankot
 from mbipy.cupy.phase_retrieval import cst_csvt
-from .LCS_DirDF import processProjectionLCS_DDF
+from ..popcorn.LCS_DirDF import processProjectionLCS_DDF
 
 class Experiment:
     def __init__(self, sample_images, reference_images, nb_of_point, max_shift, pixel, dist_object_detector, dist_source_object, LCS_median_filter):
