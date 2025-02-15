@@ -16,9 +16,12 @@ contributions:
     - id: mobi-plugin.make_sample_data
       python_name: mobi_plugin._sample_data:make_sample_data
       title: Load sample data from MoBI
-    - id: mobi-plugin.make_qwidget
-      python_name: mobi_plugin:StartProcessing
-      title: Make QWidget
+    - id: mobi-plugin.lcs
+      python_name: mobi_plugin.widgets._lcs:LcsWidget
+      title: Lcs
+    - id: mobi-plugin.widget_2
+      python_name: mobi_plugin.widgets._widget_2:Widget2
+      title: Widget 2
   readers:
     - command: mobi-plugin.get_reader
       accepts_directories: true
@@ -35,5 +38,7 @@ contributions:
       display_name: MoBI
       key: unique_id.1
   widgets:
-    - command: mobi-plugin.make_qwidget
-      display_name: Start Processing
+    - command: mobi-plugin.lcs
+      display_name: Lcs
+    - command: mobi-plugin.widget_2
+      display_name: Widget 2

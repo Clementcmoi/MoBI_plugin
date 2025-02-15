@@ -16,23 +16,25 @@ from qtpy.QtWidgets import (
     QSizePolicy,
     QInputDialog
 )
+from magicgui import magic_factory
 from .widgets._processing import processing
+from .widgets._utils import LayerUtils
 
 if TYPE_CHECKING:
     import napari
 
+@magic_factory
 class StartProcessing(QWidget):
     """
     Custom widget for processing data in Napari.
     """
-
     def __init__(self, viewer: "napari.viewer.Viewer"):
         super().__init__()
         self.viewer = viewer
         self.parameters = {}
 
         self.setup_ui()
-        self.connect_signals()
+        LayerUtils.connect_signals(self)
 
     def setup_ui(self):
         """
@@ -53,17 +55,8 @@ class StartProcessing(QWidget):
         self.add_test_button()
 
         # Add spacer to push widgets to the top
-        self.update_layer_selections()
+        LayerUtils.update_layer_selections(self)
         self.layout().addSpacerItem(QSpacerItem(20, 40, QSizePolicy.Minimum, QSizePolicy.Expanding))
-
-    def connect_signals(self):
-        """
-        Connect signals for layer updates.
-        """
-        self.viewer.layers.events.inserted.connect(self.update_layer_selections)
-        self.viewer.layers.events.removed.connect(self.update_layer_selections)
-        self.viewer.layers.events.changed.connect(self.update_layer_selections)
-        self.viewer.layers.events.reordered.connect(self.update_layer_selections)
 
     def add_layer_selection_section(self):
         """
@@ -198,23 +191,6 @@ class StartProcessing(QWidget):
         btn_test = QPushButton("Test")
         btn_test.clicked.connect(self.test_function)
         self.layout().addWidget(btn_test)
-
-    def update_layer_selections(self, event=None):
-        """
-        Update the QComboBox selections with the list of layers.
-        """
-        layers = [layer.name for layer in self.viewer.layers]
-        for combobox in [self.reference_selection, self.sample_selection]:
-            combobox.clear()
-            combobox.addItems(layers)
-
-        if self.darkfield_checkbox.isChecked() and self.darkfield_selection:
-            self.darkfield_selection.clear()
-            self.darkfield_selection.addItems(layers)
-        
-        if self.flatfield_checkbox.isChecked() and self.flatfield_selection:
-            self.flatfield_selection.clear()
-            self.flatfield_selection.addItems(layers)
 
     def call_processing(self):
         """
@@ -413,8 +389,192 @@ class StartProcessing(QWidget):
             if self.pixel_input.text():
                 self.parameters['pixel'] = float(self.pixel_input.text())
             if self.dist_object_detector_input.text():
+            if widget_selection:
+                layout.removeWidget(widget_selection)
+                widget_selection.deleteLater()
+                setattr(self, selection_attr, None)
+            self.pad_checkbox.setVisible(False)
+        self.layout().update()
+
+    def update_parameters(self):
+        """
+        Update the parameters dictionary based on widget values.
+        """
+        if self.method_selection.currentText() == "lcs" or self.method_selection.currentText() == "lcs_df":
+            self.parameters['alpha'] = self.alpha_input.text()
+            self.parameters['weak_absorption'] = self.weak_absorption_checkbox.isChecked()
+        
+        if self.method_selection.currentText() == "cst_csvt":
+            self.parameters['window_size'] = self.window_size_input.text()
+            self.parameters['pixel_shift'] = self.pixel_shift_input.text()
+
+        if self.method_selection.currentText() == "lcs_dirdf":
+            if self.max_shift_input.text():
+                self.parameters['max_shift'] = int(self.max_shift_input.text())
+            if self.pixel_input.text():
+                self.parameters['pixel'] = float(self.pixel_input.text())
+            if self.dist_object_detector_input.text():
                 self.parameters['dist_object_detector'] = float(self.dist_object_detector_input.text())
             if self.dist_source_object_input.text():
                 self.parameters['dist_source_object'] = float(self.dist_source_object_input.text())
             if self.LCS_median_filter_input.text():
                 self.parameters['LCS_median_filter'] = int(self.LCS_median_filter_input.text())
+
+    """
+    Fonction externe appelée par le widget.
+    Parameters:
+    params (dict): Dictionnaire contenant les paramètres nécessaires.
+    """
+
+    images = load_images_from_layers(params['viewer'], params['layer_names'])  # dict
+
+    sample = images[params['layer_names']['sample']]
+    ref = images[params['layer_names']['reference']]
+    dark = images[params['layer_names']['darkfield']] if params['darkfield_selected'] else None
+    flat = images[params['layer_names']['flatfield']] if params['flatfield_selected'] else None
+
+    if params['darkfield_selected'] or params['flatfield_selected']:
+        ref, sample = apply_corrections(ref, sample, dark, flat)
+
+    pad = "antisym" if params['pad'] else None
+        
+    match params['method']:
+        case "lcs":
+            result_lcs = lcs(ref, sample, alpha=float(params['parameters']['alpha']), weak_absorption=params['parameters']['weak_absorption'])
+            name = ["abs", "dx", "dy"]
+
+            if params['phase_retrieval_method'] is not None:
+                result_phase = phase_retrieval(result_lcs, params['phase_retrieval_method'], pad)
+                name.append("phase")
+
+            for img_idx in range(len(name)):
+                if img_idx < 3:
+                    params['viewer'].add_image(result_lcs[:, :, img_idx], name=name[img_idx] + "_" + params['method'])
+                else:
+                    params['viewer'].add_image(result_phase, name=name[img_idx] + "_" + params['method'])
+
+        case "lcs_df":
+            result_lcs_df = lcs_df(ref, sample, alpha=float(params['parameters']['alpha']), weak_absorption=params['parameters']['weak_absorption'])
+            name = ["abs", "dx", "dy", "df"]
+
+            if params['phase_retrieval_method'] is not None:
+                result_phase = phase_retrieval(result_lcs_df, params['phase_retrieval_method'], pad)
+                name.append("phase")
+
+            for img_idx in range(len(name)):
+                if img_idx < 4:
+                    params['viewer'].add_image(result_lcs_df[:, :, img_idx], name=name[img_idx] + "_" + params['method'])
+                else:
+                    params['viewer'].add_image(result_phase, name=name[img_idx] + "_" + params['method'])
+
+        case "cst_csvt":
+            result_cst_csvt = cst_csvt(ref, sample, int(params['parameters']['window_size']), (params['parameters']['pixel_shift']))
+
+            name = ["abs", "dx", "dy"]
+
+            if params['phase_retrieval_method'] is not None:
+                result_phase = phase_retrieval(result_cst_csvt, params['phase_retrieval_method'], pad)
+                name.append("phase")
+
+            for img_idx in range(len(name)):
+                if img_idx < 3:
+                    params['viewer'].add_image(result_cst_csvt[:, :, img_idx], name=name[img_idx] + "_" + params['method'])
+                else:
+                    params['viewer'].add_image(result_phase, name=name[img_idx] + "_" + params['method'])
+
+        case "lcs_dirdf":
+            experiment = Experiment(
+                sample_images=sample,
+                reference_images=ref,
+                nb_of_point=sample.shape[0],
+                max_shift=params['parameters']['max_shift'],
+                pixel=params['parameters']['pixel'],
+                dist_object_detector=params['parameters']['dist_object_detector'],
+                dist_source_object=params['parameters']['dist_source_object'],
+                LCS_median_filter=params['parameters']['LCS_median_filter']
+            )
+
+            print("Processing LCS_DirDF") # debug
+            result_lcs_dirdf = processProjectionLCS_DDF(experiment)
+            print("Processing LCS_DirDF done") # debug
+            name = ["dx", "dy", "phiFC", "phiK", "absorption", "Deff_xx", "Deff_yy", "Deff_xy", "excentricity", "area", "oriented_DF_exc", "oriented_DF_area", "oriented_DF_norm", "theta", "local_orientation_strength"]
+            print("Adding images to viewer") # debug
+            for key in result_lcs_dirdf:
+                params['viewer'].add_image(result_lcs_dirdf[key], name=key + "_" + params['method'])
+           
+
+    return 
+
+def phase_retrieval(result_lcs, phase_retrieval_method, pad):
+    gy = result_lcs[:, :, 2]
+    gx = result_lcs[:, :, 1]
+
+    match phase_retrieval_method:
+        case "Kottler":
+            result = kottler(gy, gx, pad=pad)
+        case "Frankot_Chellappa":
+            result = frankot(gy, gx, pad=pad)
+
+    return result
+
+def load_images_from_layers(viewer, layer_names):
+    """
+    Charge les images en mémoire à partir des layers sélectionnés dans le viewer Napari.
+
+    Parameters:
+    viewer (napari.viewer.Viewer): Instance du viewer Napari.
+    layer_names (list, optional): Liste des noms des layers à charger. Si None, charge tous les layers.
+
+    Returns:
+    dict: Dictionnaire où les clés sont les noms des layers et les valeurs sont les données des images.
+    """
+    images = {}
+
+    for layer in viewer.layers:
+
+        # Vérifiez si le layer est dans la liste sélectionnée (si une liste est fournie)
+        if layer_names and layer.name not in layer_names.values():
+            continue
+
+        # Vérifiez si le layer est une image
+        if isinstance(layer, napari.layers.Image):
+            images[layer.name] = layer.data
+        else:
+            print(f"Le layer '{layer.name}' n'est pas de type Image.")
+
+    return images
+
+
+def apply_corrections(ref, sample, dark, flat):
+    """
+    Applique les corrections darkfield et flatfield aux images de référence et d'échantillon.
+
+    Parameters:
+    ref (numpy.ndarray): Image de référence.
+    sample (numpy.ndarray): Image d'échantillon.
+    dark (numpy.ndarray): Image darkfield.
+    flat (numpy.ndarray): Image flatfield.
+
+    Returns:
+    tuple: Tuple contenant les images corrigées dans l'ordre (ref, sample).
+    """
+    if dark is not None and flat is not None:
+        flat_dark = flat - dark
+
+        flat_dark[flat_dark == 0] = 1e-6
+
+        ref = (ref - dark) / (flat_dark)
+        sample = (sample - dark) / (flat_dark)
+
+    elif dark is not None:
+        ref = ref - dark
+        sample = sample - dark
+
+    elif flat is not None:
+
+        flat[flat == 0] = 1e-6
+
+        ref = ref / flat
+        sample = sample / flat
+
+    return ref, sample
