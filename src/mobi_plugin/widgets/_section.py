@@ -26,8 +26,6 @@ def add_layer_selection_section(widget):
     widget.reference_selection = create_combobox(widget, "Select reference:")
     widget.sample_selection = create_combobox(widget, "Select sample:")
     widget.experiment = None  # Initialize experiment attribute
-    widget.parameters = Parameters()  # Initialize parameters attribute with default method "lcs"
-    print(f"Initialized widget.parameters: {widget.parameters}")
 
 def create_combobox(widget, label_text):
     """
@@ -191,8 +189,6 @@ def call_processing(widget):
         'phase_retrieval_method': widget.phase_retrieval_selection.currentText() if widget.phase_retrieval_selection else None,
         'pad': widget.pad_checkbox.isChecked(),
     }
-
-    print(params)
 
     try:
         processing(params)

@@ -44,18 +44,27 @@ class Experiment:
         return 1.0
 
 class Parameters:
-    def __init__(self, method="lcs"):  # Default method to "lcs"
+    def __init__(self, method): 
         self.method = method
-        self.alpha = None
-        self.weak_absorption = None
-        self.window_size = None
-        self.pixel_shift = None
-        self.max_shift = None
-        self.pixel = None
-        self.dist_object_detector = None
-        self.dist_source_object = None
-        self.LCS_median_filter = None
-        self.phase_parameters = None  # New attribute for phase parameters
+
+        # Initialize the parameters based on the method
+
+        if method == "lcs" or method == "lcs_df":
+            self.alpha = None
+            self.weak_absorption = None
+        elif method == "cst_csvt":
+            self.window_size = None
+            self.pixel_shift = None
+        elif method == "lcs_dirdf":
+            self.max_shift = None
+            self.pixel = None
+        else:
+            self.dist_object_detector = None
+            self.dist_source_object = None
+            self.LCS_median_filter = None
+
+        self.phase_parameters = None
+
         print(f"Initialized Parameters with method: {self.method}")
 
     def update(self, widget):
@@ -84,10 +93,9 @@ class Parameters:
             if widget.phase_retrieval_checkbox.isChecked():
                 self.phase_parameters = {
                     'method': widget.phase_retrieval_selection.currentText(),
-                    'pad': widget.pad_checkbox.isChecked()
+                    'pad': "antisym" if widget.pad_checkbox.isChecked() else None
                 }
             else:
                 self.phase_parameters = None
         except ValueError as e:
             print(f"Error updating parameters: {e}")
-        print(f"Updated Parameters: {self.__dict__}")
