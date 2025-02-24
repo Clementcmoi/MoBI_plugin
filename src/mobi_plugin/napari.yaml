@@ -17,11 +17,17 @@ contributions:
       python_name: mobi_plugin._sample_data:make_sample_data
       title: Load sample data from MoBI
     - id: mobi-plugin.lcs
-      python_name: mobi_plugin.widgets._lcs:LcsWidget
+      python_name: mobi_plugin._widgets:LcsWidget
       title: Lcs
-    - id: mobi-plugin.widget_2
-      python_name: mobi_plugin.widgets._widget_2:Widget2
-      title: Widget 2
+    - id: mobi-plugin.lcsdf
+      python_name: mobi_plugin._widgets:LcsdfWidget
+      title: Lcs Df
+    - id: mobi-plugin.lcsdirdf
+      python_name: mobi_plugin._widgets:LcsdirdfWidget
+      title: Lcs Dir Df
+    - id: mobi-plugin.misti
+      python_name: mobi_plugin._widgets:MistiWidget
+      title: MISTI
   readers:
     - command: mobi-plugin.get_reader
       accepts_directories: true
@@ -40,5 +46,9 @@ contributions:
   widgets:
     - command: mobi-plugin.lcs
       display_name: Lcs
-    - command: mobi-plugin.widget_2
-      display_name: Widget 2
+    - command: mobi-plugin.lcsdf
+      display_name: Lcs Df
+    - command: mobi-plugin.lcsdirdf
+      display_name: Lcs Dir Df
+    - command: mobi-plugin.misti
+      display_name: MISTI

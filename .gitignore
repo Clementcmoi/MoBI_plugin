@@ -27,9 +27,9 @@ var/
 *.egg
 
 # Ignorer les sous-modules ou dépendances locales
-popcorn/
 mbipy/
 test/
+popcorn-main/
 
 # PyInstaller
 *.manifest
@@ -93,3 +93,5 @@ data/
 *.npy # Fichiers NumPy
 *.csv # Fichiers CSV de données
 *.json # Fichiers JSON de configuration
+~$*.xlsx
+

@@ -25,71 +25,120 @@ class LayerUtils:
         
         if hasattr(widget, 'flatfield_checkbox') and widget.flatfield_checkbox.isChecked() and widget.flatfield_selection:
             widget.flatfield_selection.clear()
-            widget.flatfield_selection.addItems(layers)
-
+            widget.flatfield_selection.addItems(layers) 
 
 class Experiment:
-    def __init__(self, sample_images, reference_images, nb_of_point, max_shift, pixel, dist_object_detector, dist_source_object, LCS_median_filter):
-        self.sample_images = sample_images
-        self.reference_images = reference_images
-        self.nb_of_point = nb_of_point
-        self.max_shift = max_shift
-        self.pixel = pixel
-        self.dist_object_detector = dist_object_detector
-        self.dist_source_object = dist_source_object
-        self.LCS_median_filter = LCS_median_filter
-
-    def getk(self):
-        # Placeholder for the actual implementation of getk
-        return 1.0
-
-class Parameters:
     def __init__(self, method): 
         self.method = method
-
         # Initialize the parameters based on the method
 
-        if method == "lcs" or method == "lcs_df":
+        self.sample_images = None
+        self.reference_images = None
+        self.darkfield = None
+        self.flatfield = None
+
+        if self.method == "lcs":
             self.alpha = None
-            self.weak_absorption = None
-        elif method == "cst_csvt":
-            self.window_size = None
-            self.pixel_shift = None
-        elif method == "lcs_dirdf":
+            self.weak_absorption = False 
+
+        elif self.method == "lcs_df":
+            self.nb_of_point = None
             self.max_shift = None
             self.pixel = None
-        else:
             self.dist_object_detector = None
             self.dist_source_object = None
             self.LCS_median_filter = None
+
+        elif self.method == "lcs_dirdf":
+            self.nb_of_point = None
+            self.max_shift = None
+            self.pixel = None
+            self.dist_object_detector = None
+            self.dist_source_object = None
+            self.LCS_median_filter = None
+
+        elif self.method == "misti":
+            self.pixel = None
+            self.dist_object_detector = None
+            self.beta = None
+            self.delta = None
+            self.energy = None
+            self.MIST_median_filter = None
+            self.sigma_regularization = None
 
         self.phase_parameters = None
 
         print(f"Initialized Parameters with method: {self.method}")
 
-    def update(self, widget):
+    def getk(self):
+        # Placeholder for the actual implementation of getk
+        return 1.0
+
+    def convert_names_to_data(self, widget):
+        """
+        Convert layer names to actual data.
+        """
+        
+
+    def update_parameters(self, widget):
         """
         Update the parameters based on the widget values.
         """
         print(f"Updating Parameters for method: {self.method}")
         try:
-            if self.method == "lcs" or self.method == "lcs_df":
+            self.sample_images = widget.sample_selection.currentText()
+            self.reference_images = widget.reference_selection.currentText()
+
+            if widget.darkfield_checkbox.isChecked():
+                self.darkfield = widget.darkfield_selection.currentText()
+            else:
+                self.darkfield = None
+
+            if widget.flatfield_checkbox.isChecked():
+                self.flatfield = widget.flatfield_selection.currentText()
+            else:
+                self.flatfield = None
+
+            if self.method == "lcs":
                 self.alpha = float(widget.alpha_input.text())
                 self.weak_absorption = widget.weak_absorption_checkbox.isChecked()
-            elif self.method == "cst_csvt":
-                self.window_size = widget.window_size_input.text()
-                self.pixel_shift = widget.pixel_shift_input.text()
+
+            elif self.method == "lcs_df":
+                # Récupérer la plage de l'axe 1 du viewer (par exemple, la largeur)
+                dim_range = widget.viewer.dims.range[0]
+                # Si la plage est fixe (min == max) alors nb_of_point vaut 1, sinon on calcule la taille
+                if dim_range[0] == dim_range[1]:
+                    self.nb_of_point = 1
+                else:
+                    self.nb_of_point = int(dim_range[1] - dim_range[0] + 1)
+                self.max_shift = float(widget.max_shift_input.text())
+                self.pixel = float(widget.pixel_input.text())
+                self.dist_object_detector = float(widget.dist_object_detector_input.text())
+                self.dist_source_object = float(widget.dist_source_object_input.text())
+                self.LCS_median_filter = int(widget.LCS_median_filter_input.text())
+
             elif self.method == "lcs_dirdf":
-                if widget.max_shift_input.text():
-                    self.max_shift = int(widget.max_shift_input.text())
-                if widget.pixel_input.text():
-                    self.pixel = float(widget.pixel_input.text())
-                if widget.dist_object_detector_input.text():
-                    self.dist_object_detector = float(widget.dist_object_detector_input.text())
-                if widget.dist_source_object_input.text():
-                    self.dist_source_object = float(widget.dist_source_object_input.text())
-                if widget.LCS_median_filter_input.text():
-                    self.LCS_median_filter = int(widget.LCS_median_filter_input.text())
+                # Même logique pour nb_of_point en utilisant le viewer
+                dim_range = widget.viewer.dims.range[0]
+                if dim_range[0] == dim_range[1]:
+                    self.nb_of_point = 1
+                else:
+                    self.nb_of_point = int(dim_range[1] - dim_range[0] + 1)
+                self.max_shift = float(widget.max_shift_input.text())
+                self.pixel = float(widget.pixel_input.text())
+                self.dist_object_detector = float(widget.dist_object_detector_input.text())
+                self.dist_source_object = float(widget.dist_source_object_input.text())
+                self.LCS_median_filter = int(widget.LCS_median_filter_input.text())
+
+            elif self.method == "misti":
+                self.pixel = float(widget.pixel_input.text())
+                self.dist_object_detector = float(widget.dist_object_detector_input.text())
+                self.beta = float(widget.beta_input.text())
+                self.delta = float(widget.delta_input.text())
+                self.energy = float(widget.energy_input.text())
+                self.MIST_median_filter = int(widget.MIST_median_filter_input.text())
+                self.sigma_regularization = float(widget.sigma_regularization_input.text())
+
             if widget.phase_retrieval_checkbox.isChecked():
                 self.phase_parameters = {
                     'method': widget.phase_retrieval_selection.currentText(),

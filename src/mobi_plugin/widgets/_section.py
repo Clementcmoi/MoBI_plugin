@@ -16,7 +16,7 @@ from qtpy.QtWidgets import (
     QSizePolicy,
     QInputDialog
 )
-from ._utils import Experiment, Parameters  # Add this import
+from ._utils import Experiment, LayerUtils  # Correct import
 from ._processing import processing  # Add this import
 
 def add_layer_selection_section(widget):
@@ -25,7 +25,6 @@ def add_layer_selection_section(widget):
     """
     widget.reference_selection = create_combobox(widget, "Select reference:")
     widget.sample_selection = create_combobox(widget, "Select sample:")
-    widget.experiment = None  # Initialize experiment attribute
 
 def create_combobox(widget, label_text):
     """
@@ -132,14 +131,6 @@ def add_processing_button(widget):
     btn_start_processing.clicked.connect(lambda: call_processing(widget))
     widget.layout().addWidget(btn_start_processing)
 
-def add_test_button(widget):
-    """
-    Add a test button.
-    """
-    btn_test = QPushButton("Test")
-    btn_test.clicked.connect(widget.test_function)
-    widget.layout().addWidget(btn_test)
-
 def update_layer_selections(widget, event=None):
     """
     Update the QComboBox selections with the list of layers.
@@ -159,69 +150,12 @@ def update_layer_selections(widget, event=None):
 
 def call_processing(widget):
     """
-    Call the processing function with selected parameters.
+    Met à jour les paramètres de l'expérience à partir des valeurs du widget,
+    puis lance le traitement en utilisant l'objet experiment et le viewer.
     """
-    # Ensure parameters are updated
-    widget.parameters.update(widget)
-
-    layer_names = {
-        'sample': widget.sample_selection.currentText(),
-        'reference': widget.reference_selection.currentText(),
-    }
-
-    darkfield_selected = False
-    flatfield_selected = False
-
-    if widget.darkfield_selection:
-        layer_names['darkfield'] = widget.darkfield_selection.currentText()
-        darkfield_selected = True
-
-    if widget.flatfield_selection:
-        layer_names['flatfield'] = widget.flatfield_selection.currentText()
-        flatfield_selected = True
-
-    params = {
-        'layer_names': layer_names,
-        'viewer': widget.viewer,
-        'parameters': widget.parameters,
-        'darkfield_selected': darkfield_selected,
-        'flatfield_selected': flatfield_selected,
-        'phase_retrieval_method': widget.phase_retrieval_selection.currentText() if widget.phase_retrieval_selection else None,
-        'pad': widget.pad_checkbox.isChecked(),
-    }
-
-    try:
-        processing(params)
-        print("Processing completed successfully.")
-    except Exception as e:
-        print(f"Error during processing: {e}")
-
-def test_function(widget):
-    """
-    Display the histogram of the selected layer.
-    """
-    selected_layer = list(widget.viewer.layers.selection)
-    if not selected_layer:
-        widget.result_label.setText("Please select a layer in 'Select sample'.")
-        return
-
-    selected_layer = selected_layer[0]
-    if not hasattr(selected_layer, "data"):
-        widget.result_label.setText("The selected layer has no valid data.")
-        return
-
-    data = selected_layer.data.ravel()
-    data_min, data_max = data.min(), data.max()
-
-    plt.figure(figsize=(8, 6))
-    plt.hist(data, bins=50, alpha=0.7)
-    plt.title(f"Histogram for layer: {selected_layer.name}\nRange: {data_min:.2f} - {data_max:.2f}")
-    plt.xlabel("Pixel values")
-    plt.ylabel("Frequency")
-    plt.grid(True)
-    plt.show()
-
-    widget.result_label.setText(f"Value range: Min = {data_min:.2f}, Max = {data_max:.2f}")
+    widget.experiment.update_parameters(widget)  # Correct method call
+    result = processing(widget.experiment, widget.viewer)
+    return result
 
 def add_lcs_variables(widget):
     """
@@ -230,21 +164,8 @@ def add_lcs_variables(widget):
     if not hasattr(widget, 'variables_layout'):
         widget.variables_layout = QVBoxLayout()
         widget.layout().addLayout(widget.variables_layout)
+    widget.variables_layout.addWidget(QLabel("Alpha:"))
     
-    widget.variables_layout.addWidget(QLabel("Alpha:"))
-    widget.alpha_input = QLineEdit()
-    widget.alpha_input.textChanged.connect(lambda: update_parameters(widget))
-    widget.variables_layout.addWidget(widget.alpha_input)
-
-    widget.weak_absorption_checkbox = QCheckBox("Weak Absorption")
-    widget.weak_absorption_checkbox.stateChanged.connect(lambda: update_parameters(widget))
-    widget.variables_layout.addWidget(widget.weak_absorption_checkbox)
-
-def add_lcs_df_variables(widget):
-    """
-    Add widgets for the 'lcs_df' method variables.
-    """
-    widget.variables_layout.addWidget(QLabel("Alpha:"))
     widget.alpha_input = QLineEdit()
     widget.alpha_input.textChanged.connect(lambda: update_parameters(widget))
     widget.variables_layout.addWidget(widget.alpha_input)
@@ -267,10 +188,14 @@ def add_cst_csvt_variables(widget):
     widget.pixel_shift_input.textChanged.connect(lambda: update_parameters(widget))
     widget.variables_layout.addWidget(widget.pixel_shift_input)
 
-def add_lcs_dirdf_variables(widget):
+def add_lcs_df_variables(widget):
     """
     Add widgets for the 'lcs_dirdf' method variables.
     """
+    if not hasattr(widget, 'variables_layout'):
+        widget.variables_layout = QVBoxLayout()
+        widget.layout().addLayout(widget.variables_layout)
+
     widget.variables_layout.addWidget(QLabel("Max Shift:"))
     widget.max_shift_input = QLineEdit()
     widget.max_shift_input.textChanged.connect(lambda: update_parameters(widget))
@@ -281,7 +206,7 @@ def add_lcs_dirdf_variables(widget):
     widget.pixel_input.textChanged.connect(lambda: update_parameters(widget))
     widget.variables_layout.addWidget(widget.pixel_input)
 
-    widget.variables_layout.addWidget(QLabel("Distance Object-Detector:"))
+    widget.variables_layout.addWidget(QLabel("Distance Object-Detector (en mètres):"))
     widget.dist_object_detector_input = QLineEdit()
     widget.dist_object_detector_input.textChanged.connect(lambda: update_parameters(widget))
     widget.variables_layout.addWidget(widget.dist_object_detector_input)
@@ -295,6 +220,49 @@ def add_lcs_dirdf_variables(widget):
     widget.LCS_median_filter_input = QLineEdit()
     widget.LCS_median_filter_input.textChanged.connect(lambda: update_parameters(widget))
     widget.variables_layout.addWidget(widget.LCS_median_filter_input)
+
+def add_misti_variables(widget):
+    """
+    Add widgets for the 'misti' method variables.
+    """
+    if not hasattr(widget, 'variables_layout'):
+        widget.variables_layout = QVBoxLayout()
+        widget.layout().addLayout(widget.variables_layout)
+
+    widget.variables_layout.addWidget(QLabel("Pixel Size:"))
+    widget.pixel_input = QLineEdit()
+    widget.pixel_input.textChanged.connect(lambda: update_parameters(widget))
+    widget.variables_layout.addWidget(widget.pixel_input)
+
+    widget.variables_layout.addWidget(QLabel("Distance Object-Detector (en mètres):"))
+    widget.dist_object_detector_input = QLineEdit()
+    widget.dist_object_detector_input.textChanged.connect(lambda: update_parameters(widget))
+    widget.variables_layout.addWidget(widget.dist_object_detector_input)
+
+    widget.variables_layout.addWidget(QLabel("Beta:"))
+    widget.beta_input = QLineEdit()
+    widget.beta_input.textChanged.connect(lambda: update_parameters(widget))
+    widget.variables_layout.addWidget(widget.beta_input)
+
+    widget.variables_layout.addWidget(QLabel("Delta:"))
+    widget.delta_input = QLineEdit()
+    widget.delta_input.textChanged.connect(lambda: update_parameters(widget))
+    widget.variables_layout.addWidget(widget.delta_input)
+
+    widget.variables_layout.addWidget(QLabel("Energy:"))
+    widget.energy_input = QLineEdit()
+    widget.energy_input.textChanged.connect(lambda: update_parameters(widget))
+    widget.variables_layout.addWidget(widget.energy_input)
+
+    widget.variables_layout.addWidget(QLabel("MIST Median Filter:"))
+    widget.MIST_median_filter_input = QLineEdit()
+    widget.MIST_median_filter_input.textChanged.connect(lambda: update_parameters(widget))
+    widget.variables_layout.addWidget(widget.MIST_median_filter_input)
+
+    widget.variables_layout.addWidget(QLabel("Sigma Regularization:"))
+    widget.sigma_regularization_input = QLineEdit()
+    widget.sigma_regularization_input.textChanged.connect(lambda: update_parameters(widget))
+    widget.variables_layout.addWidget(widget.sigma_regularization_input)
 
 def toggle_field_phase(widget, checked, layout, label_attr, selection_attr, label_text):
     if checked == Qt.Checked:
@@ -325,8 +293,4 @@ def update_parameters(widget):
     """
     Update the parameters dictionary based on widget values.
     """
-    method = widget.parameters.method  # Use the existing method if not set
-
-    # Update parameters based on the selected method
-    widget.parameters.method = method
-    widget.parameters.update(widget)
+    widget.experiment.update_parameters(widget)  # Correct method call

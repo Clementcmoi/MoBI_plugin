@@ -7,7 +7,8 @@ except ImportError:
 from ._sample_data import make_sample_data
 from ._writer import write_multiple, write_single_image
 
-from .widgets._lcs import LcsWidget
+from ._widgets import LcsWidget, LcsdfWidget, LcsdirdfWidget, MistiWidget
+
 
 # Liste des objets exposés par le package
 __all__ = (
@@ -20,4 +21,4 @@ __all__ = (
 )
 
 def napari_experimental_provide_dock_widget():
-    return [LcsWidget]
+    return [LcsWidget, LcsdfWidget, LcsdirdfWidget, MistiWidget]
