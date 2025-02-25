@@ -316,6 +316,7 @@ def add_lcs_df_variables(widget):
     add_pixel_size_layout(widget)
     add_dist_object_detector_layout(widget)
     add_dist_source_object_layout(widget)
+    add_energy_layout(widget)
     add_LCS_median_filter_layout(widget)
 
 def add_misti_variables(widget):
@@ -380,6 +381,7 @@ def add_xsvt_variables(widget):
     add_pixel_size_layout(widget)
     add_dist_object_detector_layout(widget)
     add_dist_source_object_layout(widget)
+    add_energy_layout(widget)
     add_XSVT_median_filter_layout(widget)
     add_XSVT_Nw_layout(widget)
 
@@ -392,6 +394,7 @@ def add_reversflowlcs_variables(widget):
     add_pixel_size_layout(widget)
     add_dist_object_detector_layout(widget)
     add_dist_source_object_layout(widget)
+    add_energy_layout(widget)
 
 def add_specklematching_variables(widget):
     """
@@ -402,4 +405,5 @@ def add_specklematching_variables(widget):
     add_pixel_size_layout(widget)
     add_dist_object_detector_layout(widget)
     add_dist_source_object_layout(widget)
+    add_energy_layout(widget)
     add_umpaNw_layout(widget)

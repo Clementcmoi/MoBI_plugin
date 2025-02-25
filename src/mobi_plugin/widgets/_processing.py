@@ -1,5 +1,7 @@
 import numpy as np
 
+from qtpy.QtWidgets import QApplication, QDialog, QVBoxLayout, QLabel
+
 from mbipy.numpy.phase_retrieval import lcs
 from mbipy.src.normal_integration.fourier import kottler, frankot
 
@@ -14,6 +16,21 @@ from ..popcorn.ReverseFlow_LCS import processProjection_rLCS
 from ..popcorn.speckle_matching import processProjectionUMPA
 
 from ._utils import Experiment
+
+def create_processing_dialog(parent, message="Processing..."):
+    """
+    Create and display a dialog with a message to indicate that processing is ongoing.
+    """
+    dialog = QDialog(parent)
+    dialog.setWindowTitle("Processing")
+    layout = QVBoxLayout()
+    label = QLabel(message)
+    layout.addWidget(label)
+    dialog.setLayout(layout)
+    dialog.setFixedSize(200, 100)
+    dialog.show()
+    QApplication.processEvents()
+    return dialog
 
 def apply_corrections(viewer, experiment):
     """
@@ -60,62 +77,67 @@ def processing(experiment, viewer):
     The viewer is used to access layer data and to add the resulting images.
     """
 
-    sample_layer, reference_layer = apply_corrections(viewer, experiment)
-
-    experiment.sample_images = sample_layer
-    experiment.reference_images = reference_layer
+    processing_dialog = create_processing_dialog(viewer.window._qt_window)  
 
     try:
-        print(f"Processing with method: {experiment.method}")
-        if experiment.method == 'lcs':
-            result = lcs(reference_layer, sample_layer, alpha=experiment.alpha, weak_absorption=experiment.weak_absorption)
-            result = np.moveaxis(result, -1, 0)
-            result = {'abs': result[0], 'dx': result[1], 'dy': result[2]}
-        elif experiment.method == 'lcs_df':
-            result = process_projection_LCS_DF(experiment)
-        elif experiment.method == 'lcs_dirdf':
-            result = processProjectionLCS_DDF(experiment)
-        elif experiment.method == 'misti':
-            result = MISTI(experiment)
-        elif experiment.method == 'mistii1':
-            result = processProjectionMISTII_1(experiment)
-        elif experiment.method == 'mistii2':
-            result = processProjectionMISTII_2(experiment)
-        elif experiment.method == 'pavlov2020':
-            result = tie_Pavlovetal2020(experiment)
-        elif experiment.method == 'xsvt':
-            result = processProjectionXSVT(experiment)
-        elif experiment.method == 'reversflowlcs':
-            result = processProjection_rLCS(experiment)
-        elif experiment.method == 'specklematching':
-            result = processProjectionUMPA(experiment)
-        else:
-            raise ValueError(f"Unknown method: {experiment.method}")
-    except Exception as e:
-        print(f"Error during processing: {e}")
-        import traceback
-        traceback.print_exc()
-        return
 
-    # Si des paramètres de phase sont définis, calculer la phase
-    if experiment.phase_parameters:
+        sample_layer, reference_layer = apply_corrections(viewer, experiment)
+        experiment.sample_images = sample_layer
+        experiment.reference_images = reference_layer
+
         try:
-            phase = apply_phase(result, experiment.phase_parameters)
-            # Le nom de la couche phase est basé sur le nom de la couche sample
-            viewer.add_image(phase, name=f"{experiment.method}_phase")
+            print(f"Processing with method: {experiment.method}")
+            if experiment.method == 'lcs':
+                result = lcs(reference_layer, sample_layer, alpha=experiment.alpha, weak_absorption=experiment.weak_absorption)
+                result = np.moveaxis(result, -1, 0)
+                result = {'abs': result[0], 'dx': result[1], 'dy': result[2]}
+            elif experiment.method == 'lcs_df':
+                result = process_projection_LCS_DF(experiment)
+            elif experiment.method == 'lcs_dirdf':
+                result = processProjectionLCS_DDF(experiment)
+            elif experiment.method == 'misti':
+                result = MISTI(experiment)
+            elif experiment.method == 'mistii1':
+                result = processProjectionMISTII_1(experiment)
+            elif experiment.method == 'mistii2':
+                result = processProjectionMISTII_2(experiment)
+            elif experiment.method == 'pavlov2020':
+                result = tie_Pavlovetal2020(experiment)
+            elif experiment.method == 'xsvt':
+                result = processProjectionXSVT(experiment)
+            elif experiment.method == 'reversflowlcs':
+                result = processProjection_rLCS(experiment)
+            elif experiment.method == 'specklematching':
+                result = processProjectionUMPA(experiment)
+            else:
+                raise ValueError(f"Unknown method: {experiment.method}")
         except Exception as e:
-            print(f"Error during phase calculation: {e}")
+            print(f"Error during processing: {e}")
+            import traceback
+            traceback.print_exc()
+            return
+
+        # Si des paramètres de phase sont définis, calculer la phase
+        if experiment.phase_parameters:
+            try:
+                phase = apply_phase(result, experiment.phase_parameters)
+                # Le nom de la couche phase est basé sur le nom de la couche sample
+                viewer.add_image(phase, name=f"{experiment.method}_phase")
+            except Exception as e:
+                print(f"Error during phase calculation: {e}")
+                import traceback
+                traceback.print_exc()
+
+        # Ajouter les images résultantes au viewer
+        try:
+            add_image_to_layer(result, experiment.method, viewer)
+        except Exception as e:
+            print(f"Error adding image to layer: {e}")
             import traceback
             traceback.print_exc()
 
-    # Ajouter les images résultantes au viewer
-    try:
-        add_image_to_layer(result, experiment.method, viewer)
-    except Exception as e:
-        print(f"Error adding image to layer: {e}")
-        import traceback
-        traceback.print_exc()
-
-    return result
+        return result
+    finally:
+        processing_dialog.close()
 
 
