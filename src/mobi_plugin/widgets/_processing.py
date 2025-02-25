@@ -1,181 +1,143 @@
-import napari
 import numpy as np
-from mbipy.numpy.phase_retrieval import lcs, lcs_df
+
+from qtpy.QtWidgets import QApplication, QDialog, QVBoxLayout, QLabel
+
+from mbipy.numpy.phase_retrieval import lcs
 from mbipy.src.normal_integration.fourier import kottler, frankot
-from mbipy.cupy.phase_retrieval import cst_csvt
+
 from ..popcorn.LCS_DirDF import processProjectionLCS_DDF
+from ..popcorn.LCS_DF import process_projection_LCS_DF
+from ..popcorn.MISTI import MISTI
+from ..popcorn.MISTII_1 import processProjectionMISTII_1
+from ..popcorn.MISTII_2 import processProjectionMISTII_2
+from ..popcorn.Pavlov2020 import tie_Pavlovetal2020
+from ..popcorn.XSVT import processProjectionXSVT
+from ..popcorn.ReverseFlow_LCS import processProjection_rLCS
+from ..popcorn.speckle_matching import processProjectionUMPA
 
-class Experiment:
-    def __init__(self, sample_images, reference_images, nb_of_point, max_shift, pixel, dist_object_detector, dist_source_object, LCS_median_filter):
-        self.sample_images = sample_images
-        self.reference_images = reference_images
-        self.nb_of_point = nb_of_point
-        self.max_shift = max_shift
-        self.pixel = pixel
-        self.dist_object_detector = dist_object_detector
-        self.dist_source_object = dist_source_object
-        self.LCS_median_filter = LCS_median_filter
+from ._utils import Experiment
 
-    def getk(self):
-        # Placeholder for the actual implementation of getk
-        return 1.0
-
-def processing(params):
+def create_processing_dialog(parent, message="Processing..."):
     """
-    Fonction externe appelée par le widget.
-    Parameters:
-    params (dict): Dictionnaire contenant les paramètres nécessaires.
+    Create and display a dialog with a message to indicate that processing is ongoing.
+    """
+    dialog = QDialog(parent)
+    dialog.setWindowTitle("Processing")
+    layout = QVBoxLayout()
+    label = QLabel(message)
+    layout.addWidget(label)
+    dialog.setLayout(layout)
+    dialog.setFixedSize(200, 100)
+    dialog.show()
+    QApplication.processEvents()
+    return dialog
+
+def apply_corrections(viewer, experiment):
+    """
+    Apply flatfield and darkfield corrections to the sample and reference layers 
+    using the data stored in the experiment object.
+    """
+    print("Applying corrections")
+    sample_layer = viewer.layers[experiment.sample_images].data
+    reference_layer = viewer.layers[experiment.reference_images].data
+
+    if experiment.darkfield is not None:
+        darkfield_layer = viewer.layers[experiment.darkfield].data
+        sample_layer = sample_layer - darkfield_layer
+        reference_layer = reference_layer - darkfield_layer
+
+    if experiment.flatfield is not None:
+        flatfield_layer = viewer.layers[experiment.flatfield].data
+        sample_layer = sample_layer / flatfield_layer
+        reference_layer = reference_layer / flatfield_layer
+
+    return sample_layer, reference_layer
+
+def apply_phase(result, phase_parameters):
+    """
+    Apply phase calculation based on the provided phase parameters.
+    """
+    if phase_parameters['method'] == 'Kottler':
+        return kottler(result['dy'], result['dx'], pad=phase_parameters['pad'])
+    elif phase_parameters['method'] == 'Frankot_Chellappa':
+        return frankot(result['dy'], result['dx'], pad=phase_parameters['pad'])
+    else:
+        raise ValueError(f"Unknown phase retrieval method: {phase_parameters['method']}")
+
+def add_image_to_layer(results, method, viewer):
+    """
+    Add the resulting image to the viewer as a new layer.
+    """
+    for name, image in results.items():
+        viewer.add_image(image.real, name=f"{name}_{method}")
+
+def processing(experiment, viewer):
+    """
+    Process the data using the parameters contained in the experiment object.
+    The viewer is used to access layer data and to add the resulting images.
     """
 
-    images = load_images_from_layers(params['viewer'], params['layer_names'])  # dict
+    processing_dialog = create_processing_dialog(viewer.window._qt_window)  
 
-    sample = images[params['layer_names']['sample']]
-    ref = images[params['layer_names']['reference']]
-    dark = images[params['layer_names']['darkfield']] if params['darkfield_selected'] else None
-    flat = images[params['layer_names']['flatfield']] if params['flatfield_selected'] else None
+    try:
 
-    if params['darkfield_selected'] or params['flatfield_selected']:
-        ref, sample = apply_corrections(ref, sample, dark, flat)
+        sample_layer, reference_layer = apply_corrections(viewer, experiment)
+        experiment.sample_images = sample_layer
+        experiment.reference_images = reference_layer
 
-    pad = "antisym" if params['pad'] else None
-        
-    match params['method']:
-        case "lcs":
-            result_lcs = lcs(ref, sample, alpha=float(params['parameters']['alpha']), weak_absorption=params['parameters']['weak_absorption'])
-            name = ["abs", "dx", "dy"]
+        try:
+            print(f"Processing with method: {experiment.method}")
+            if experiment.method == 'lcs':
+                result = lcs(reference_layer, sample_layer, alpha=experiment.alpha, weak_absorption=experiment.weak_absorption)
+                result = np.moveaxis(result, -1, 0)
+                result = {'abs': result[0], 'dx': result[1], 'dy': result[2]}
+            elif experiment.method == 'lcs_df':
+                result = process_projection_LCS_DF(experiment)
+            elif experiment.method == 'lcs_dirdf':
+                result = processProjectionLCS_DDF(experiment)
+            elif experiment.method == 'misti':
+                result = MISTI(experiment)
+            elif experiment.method == 'mistii1':
+                result = processProjectionMISTII_1(experiment)
+            elif experiment.method == 'mistii2':
+                result = processProjectionMISTII_2(experiment)
+            elif experiment.method == 'pavlov2020':
+                result = tie_Pavlovetal2020(experiment)
+            elif experiment.method == 'xsvt':
+                result = processProjectionXSVT(experiment)
+            elif experiment.method == 'reversflowlcs':
+                result = processProjection_rLCS(experiment)
+            elif experiment.method == 'specklematching':
+                result = processProjectionUMPA(experiment)
+            else:
+                raise ValueError(f"Unknown method: {experiment.method}")
+        except Exception as e:
+            print(f"Error during processing: {e}")
+            import traceback
+            traceback.print_exc()
+            return
 
-            if params['phase_retrieval_method'] is not None:
-                result_phase = phase_retrieval(result_lcs, params['phase_retrieval_method'], pad)
-                name.append("phase")
+        # Si des paramètres de phase sont définis, calculer la phase
+        if experiment.phase_parameters:
+            try:
+                phase = apply_phase(result, experiment.phase_parameters)
+                # Le nom de la couche phase est basé sur le nom de la couche sample
+                viewer.add_image(phase, name=f"{experiment.method}_phase")
+            except Exception as e:
+                print(f"Error during phase calculation: {e}")
+                import traceback
+                traceback.print_exc()
 
-            for img_idx in range(len(name)):
-                if img_idx < 3:
-                    params['viewer'].add_image(result_lcs[:, :, img_idx], name=name[img_idx] + "_" + params['method'])
-                else:
-                    params['viewer'].add_image(result_phase, name=name[img_idx] + "_" + params['method'])
+        # Ajouter les images résultantes au viewer
+        try:
+            add_image_to_layer(result, experiment.method, viewer)
+        except Exception as e:
+            print(f"Error adding image to layer: {e}")
+            import traceback
+            traceback.print_exc()
 
-        case "lcs_df":
-            result_lcs_df = lcs_df(ref, sample, alpha=float(params['parameters']['alpha']), weak_absorption=params['parameters']['weak_absorption'])
-            name = ["abs", "dx", "dy", "df"]
-
-            if params['phase_retrieval_method'] is not None:
-                result_phase = phase_retrieval(result_lcs_df, params['phase_retrieval_method'], pad)
-                name.append("phase")
-
-            for img_idx in range(len(name)):
-                if img_idx < 4:
-                    params['viewer'].add_image(result_lcs_df[:, :, img_idx], name=name[img_idx] + "_" + params['method'])
-                else:
-                    params['viewer'].add_image(result_phase, name=name[img_idx] + "_" + params['method'])
-
-        case "cst_csvt":
-            result_cst_csvt = cst_csvt(ref, sample, int(params['parameters']['window_size']), (params['parameters']['pixel_shift']))
-
-            name = ["abs", "dx", "dy"]
-
-            if params['phase_retrieval_method'] is not None:
-                result_phase = phase_retrieval(result_cst_csvt, params['phase_retrieval_method'], pad)
-                name.append("phase")
-
-            for img_idx in range(len(name)):
-                if img_idx < 3:
-                    params['viewer'].add_image(result_cst_csvt[:, :, img_idx], name=name[img_idx] + "_" + params['method'])
-                else:
-                    params['viewer'].add_image(result_phase, name=name[img_idx] + "_" + params['method'])
-
-        case "lcs_dirdf":
-            experiment = Experiment(
-                sample_images=sample,
-                reference_images=ref,
-                nb_of_point=sample.shape[0],
-                max_shift=params['parameters']['max_shift'],
-                pixel=params['parameters']['pixel'],
-                dist_object_detector=params['parameters']['dist_object_detector'],
-                dist_source_object=params['parameters']['dist_source_object'],
-                LCS_median_filter=params['parameters']['LCS_median_filter']
-            )
-
-            print("Processing LCS_DirDF") # debug
-            result_lcs_dirdf = processProjectionLCS_DDF(experiment)
-            print("Processing LCS_DirDF done") # debug
-            name = ["dx", "dy", "phiFC", "phiK", "absorption", "Deff_xx", "Deff_yy", "Deff_xy", "excentricity", "area", "oriented_DF_exc", "oriented_DF_area", "oriented_DF_norm", "theta", "local_orientation_strength"]
-            print("Adding images to viewer") # debug
-            for key in result_lcs_dirdf:
-                params['viewer'].add_image(result_lcs_dirdf[key], name=key + "_" + params['method'])
-           
-
-    return 
-
-def phase_retrieval(result_lcs, phase_retrieval_method, pad):
-    gy = result_lcs[:, :, 2]
-    gx = result_lcs[:, :, 1]
-
-    match phase_retrieval_method:
-        case "Kottler":
-            result = kottler(gy, gx, pad=pad)
-        case "Frankot_Chellappa":
-            result = frankot(gy, gx, pad=pad)
-
-    return result
-
-def load_images_from_layers(viewer, layer_names):
-    """
-    Charge les images en mémoire à partir des layers sélectionnés dans le viewer Napari.
-
-    Parameters:
-    viewer (napari.viewer.Viewer): Instance du viewer Napari.
-    layer_names (list, optional): Liste des noms des layers à charger. Si None, charge tous les layers.
-
-    Returns:
-    dict: Dictionnaire où les clés sont les noms des layers et les valeurs sont les données des images.
-    """
-    images = {}
-
-    for layer in viewer.layers:
-
-        # Vérifiez si le layer est dans la liste sélectionnée (si une liste est fournie)
-        if layer_names and layer.name not in layer_names.values():
-            continue
-
-        # Vérifiez si le layer est une image
-        if isinstance(layer, napari.layers.Image):
-            images[layer.name] = layer.data
-        else:
-            print(f"Le layer '{layer.name}' n'est pas de type Image.")
-
-    return images
+        return result
+    finally:
+        processing_dialog.close()
 
 
-def apply_corrections(ref, sample, dark, flat):
-    """
-    Applique les corrections darkfield et flatfield aux images de référence et d'échantillon.
-
-    Parameters:
-    ref (numpy.ndarray): Image de référence.
-    sample (numpy.ndarray): Image d'échantillon.
-    dark (numpy.ndarray): Image darkfield.
-    flat (numpy.ndarray): Image flatfield.
-
-    Returns:
-    tuple: Tuple contenant les images corrigées dans l'ordre (ref, sample).
-    """
-    if dark is not None and flat is not None:
-        flat_dark = flat - dark
-
-        flat_dark[flat_dark == 0] = 1e-6
-
-        ref = (ref - dark) / (flat_dark)
-        sample = (sample - dark) / (flat_dark)
-
-    elif dark is not None:
-        ref = ref - dark
-        sample = sample - dark
-
-    elif flat is not None:
-
-        flat[flat == 0] = 1e-6
-
-        ref = ref / flat
-        sample = sample / flat
-
-    return ref, sample

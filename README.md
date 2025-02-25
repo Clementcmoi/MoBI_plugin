@@ -27,16 +27,13 @@ Then, install the required packages within the virtual environment.
 
 ## Python Version
 
-This plugin requires Python 3.7 or higher. Ensure you have the correct version installed:
+This plugin requires Python 3.7 to 3.12. Ensure you have the correct version installed:
 
 ```bash
 python --version
 ```
 
 ## Installation
-
-This plugin uses the `cupy` library for accelerated GPU/CPU computations. You need to install `cupy` manually based on your hardware configuration:
-Refer to the [CuPy installation guide](https://docs.cupy.dev/en/stable/install.html) for detailed instructions.
 
 This plugin requires `napari` and `mbipy`. You need to clone and install `mbipy` with `pip`:
 
