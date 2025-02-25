@@ -1,6 +1,8 @@
 import numpy as np
+
 from mbipy.numpy.phase_retrieval import lcs
 from mbipy.src.normal_integration.fourier import kottler, frankot
+
 from ..popcorn.LCS_DirDF import processProjectionLCS_DDF
 from ..popcorn.LCS_DF import process_projection_LCS_DF
 from ..popcorn.MISTI import MISTI
@@ -10,12 +12,13 @@ from ..popcorn.Pavlov2020 import tie_Pavlovetal2020
 from ..popcorn.XSVT import processProjectionXSVT
 from ..popcorn.ReverseFlow_LCS import processProjection_rLCS
 from ..popcorn.speckle_matching import processProjectionUMPA
-from ._utils import Experiment  # Correct import
+
+from ._utils import Experiment
 
 def apply_corrections(viewer, experiment):
     """
-    Appliquer les corrections flatfield et darkfield aux couches sample et reference 
-    en utilisant les données stockées dans l'objet experiment.
+    Apply flatfield and darkfield corrections to the sample and reference layers 
+    using the data stored in the experiment object.
     """
     print("Applying corrections")
     sample_layer = viewer.layers[experiment.sample_images].data
@@ -53,11 +56,10 @@ def add_image_to_layer(results, method, viewer):
 
 def processing(experiment, viewer):
     """
-    Traiter les données en utilisant les paramètres contenus dans l'objet experiment.
-    Le viewer est utilisé pour accéder aux données des couches et pour ajouter les images résultantes.
+    Process the data using the parameters contained in the experiment object.
+    The viewer is used to access layer data and to add the resulting images.
     """
-    # Appliquer les corrections à partir des données contenues dans experiment
-    
+
     sample_layer, reference_layer = apply_corrections(viewer, experiment)
 
     experiment.sample_images = sample_layer
