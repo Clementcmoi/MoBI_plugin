@@ -16,8 +16,8 @@ from qtpy.QtWidgets import (
     QSizePolicy,
     QInputDialog
 )
-from ._utils import Experiment, LayerUtils  # Correct import
-from ._processing import processing  # Add this import
+from ._utils import Experiment, LayerUtils
+from ._processing import processing 
 
 def add_layer_selection_section(widget):
     """
@@ -150,119 +150,123 @@ def update_layer_selections(widget, event=None):
 
 def call_processing(widget):
     """
-    Met à jour les paramètres de l'expérience à partir des valeurs du widget,
-    puis lance le traitement en utilisant l'objet experiment et le viewer.
+    Updates experiment parameters using widget values,
+    then launches processing using the experiment object and viewer.
     """
-    widget.experiment.update_parameters(widget)  # Correct method call
+    widget.experiment.update_parameters(widget)
     result = processing(widget.experiment, widget.viewer)
     return result
 
-def add_lcs_variables(widget):
+def ensure_variables_layout(widget):
     """
-    Add widgets for the 'lcs' method variables.
+    Checks whether 'widget' has a layout named 'variables_layout'. 
+    If not, it creates it and adds it to the widget's main layout.
+    Then returns this layout.
     """
     if not hasattr(widget, 'variables_layout'):
         widget.variables_layout = QVBoxLayout()
         widget.layout().addLayout(widget.variables_layout)
+
+def add_alpha_layout(widget):
     widget.variables_layout.addWidget(QLabel("Alpha:"))
-    
     widget.alpha_input = QLineEdit()
     widget.alpha_input.textChanged.connect(lambda: update_parameters(widget))
     widget.variables_layout.addWidget(widget.alpha_input)
 
+def add_weak_absorption_layout(widget):
     widget.weak_absorption_checkbox = QCheckBox("Weak Absorption")
     widget.weak_absorption_checkbox.stateChanged.connect(lambda: update_parameters(widget))
     widget.variables_layout.addWidget(widget.weak_absorption_checkbox)
 
-def add_cst_csvt_variables(widget):
-    """
-    Add widgets for the 'cst_csvt' method variables.
-    """
-    widget.variables_layout.addWidget(QLabel("Window Size:"))
+def add_window_size_layout(widget):
+    widget.variables_layout.addWidget(QLabel("Window size:"))
     widget.window_size_input = QLineEdit()
     widget.window_size_input.textChanged.connect(lambda: update_parameters(widget))
     widget.variables_layout.addWidget(widget.window_size_input)
 
-    widget.variables_layout.addWidget(QLabel("Pixel Shift:"))
-    widget.pixel_shift_input = QLineEdit()
-    widget.pixel_shift_input.textChanged.connect(lambda: update_parameters(widget))
-    widget.variables_layout.addWidget(widget.pixel_shift_input)
-
-def add_lcs_df_variables(widget):
-    """
-    Add widgets for the 'lcs_dirdf' method variables.
-    """
-    if not hasattr(widget, 'variables_layout'):
-        widget.variables_layout = QVBoxLayout()
-        widget.layout().addLayout(widget.variables_layout)
-
-    widget.variables_layout.addWidget(QLabel("Max Shift:"))
+def add_max_shift_layout(widget):
+    widget.variables_layout.addWidget(QLabel("Max shift:"))
     widget.max_shift_input = QLineEdit()
     widget.max_shift_input.textChanged.connect(lambda: update_parameters(widget))
     widget.variables_layout.addWidget(widget.max_shift_input)
 
-    widget.variables_layout.addWidget(QLabel("Pixel Size:"))
+def add_pixel_size_layout(widget):
+    widget.variables_layout.addWidget(QLabel("Pixel size:"))
     widget.pixel_input = QLineEdit()
     widget.pixel_input.textChanged.connect(lambda: update_parameters(widget))
     widget.variables_layout.addWidget(widget.pixel_input)
 
-    widget.variables_layout.addWidget(QLabel("Distance Object-Detector (en mètres):"))
+def add_dist_object_detector_layout(widget):
+    widget.variables_layout.addWidget(QLabel("Distance object-detector:"))
     widget.dist_object_detector_input = QLineEdit()
     widget.dist_object_detector_input.textChanged.connect(lambda: update_parameters(widget))
     widget.variables_layout.addWidget(widget.dist_object_detector_input)
 
-    widget.variables_layout.addWidget(QLabel("Distance Source-Object:"))
+def add_dist_source_object_layout(widget):
+    widget.variables_layout.addWidget(QLabel("Distance source-object:"))
     widget.dist_source_object_input = QLineEdit()
     widget.dist_source_object_input.textChanged.connect(lambda: update_parameters(widget))
     widget.variables_layout.addWidget(widget.dist_source_object_input)
 
-    widget.variables_layout.addWidget(QLabel("LCS Median Filter:"))
+def add_LCS_median_filter_layout(widget):
+    widget.variables_layout.addWidget(QLabel("LCS median filter:"))
     widget.LCS_median_filter_input = QLineEdit()
     widget.LCS_median_filter_input.textChanged.connect(lambda: update_parameters(widget))
     widget.variables_layout.addWidget(widget.LCS_median_filter_input)
 
-def add_misti_variables(widget):
-    """
-    Add widgets for the 'misti' method variables.
-    """
-    if not hasattr(widget, 'variables_layout'):
-        widget.variables_layout = QVBoxLayout()
-        widget.layout().addLayout(widget.variables_layout)
-
-    widget.variables_layout.addWidget(QLabel("Pixel Size:"))
-    widget.pixel_input = QLineEdit()
-    widget.pixel_input.textChanged.connect(lambda: update_parameters(widget))
-    widget.variables_layout.addWidget(widget.pixel_input)
-
-    widget.variables_layout.addWidget(QLabel("Distance Object-Detector (en mètres):"))
-    widget.dist_object_detector_input = QLineEdit()
-    widget.dist_object_detector_input.textChanged.connect(lambda: update_parameters(widget))
-    widget.variables_layout.addWidget(widget.dist_object_detector_input)
-
+def add_beta_layout(widget):
     widget.variables_layout.addWidget(QLabel("Beta:"))
     widget.beta_input = QLineEdit()
     widget.beta_input.textChanged.connect(lambda: update_parameters(widget))
     widget.variables_layout.addWidget(widget.beta_input)
 
+def add_delta_layout(widget):
     widget.variables_layout.addWidget(QLabel("Delta:"))
     widget.delta_input = QLineEdit()
     widget.delta_input.textChanged.connect(lambda: update_parameters(widget))
     widget.variables_layout.addWidget(widget.delta_input)
 
+def add_energy_layout(widget):
     widget.variables_layout.addWidget(QLabel("Energy:"))
     widget.energy_input = QLineEdit()
     widget.energy_input.textChanged.connect(lambda: update_parameters(widget))
     widget.variables_layout.addWidget(widget.energy_input)
 
-    widget.variables_layout.addWidget(QLabel("MIST Median Filter:"))
+def add_MIST_median_filter_layout(widget):
+    widget.variables_layout.addWidget(QLabel("MIST median filter:"))
     widget.MIST_median_filter_input = QLineEdit()
     widget.MIST_median_filter_input.textChanged.connect(lambda: update_parameters(widget))
     widget.variables_layout.addWidget(widget.MIST_median_filter_input)
 
-    widget.variables_layout.addWidget(QLabel("Sigma Regularization:"))
+def add_sigma_regularization_layout(widget):
+    widget.variables_layout.addWidget(QLabel("Sigma regularization:"))
     widget.sigma_regularization_input = QLineEdit()
     widget.sigma_regularization_input.textChanged.connect(lambda: update_parameters(widget))
     widget.variables_layout.addWidget(widget.sigma_regularization_input)
+
+def add_source_size_layout(widget):
+    widget.variables_layout.addWidget(QLabel("Source size:"))
+    widget.source_size_input = QLineEdit()
+    widget.source_size_input.textChanged.connect(lambda: update_parameters(widget))
+    widget.variables_layout.addWidget(widget.source_size_input)
+
+def add_XSVT_median_filter_layout(widget):
+    widget.variables_layout.addWidget(QLabel("XSVT median filter:"))
+    widget.XSVT_median_filter_input = QLineEdit()
+    widget.XSVT_median_filter_input.textChanged.connect(lambda: update_parameters(widget))
+    widget.variables_layout.addWidget(widget.XSVT_median_filter_input)
+
+def add_XSVT_Nw_layout(widget):
+    widget.variables_layout.addWidget(QLabel("XSVT Nw:"))
+    widget.XSVT_Nw_input = QLineEdit()
+    widget.XSVT_Nw_input.textChanged.connect(lambda: update_parameters(widget))
+    widget.variables_layout.addWidget(widget.XSVT_Nw_input)
+
+def add_umpaNw_layout(widget):
+    widget.variables_layout.addWidget(QLabel("UMPA Nw:"))
+    widget.UMPA_Nw_input = QLineEdit()
+    widget.UMPA_Nw_input.textChanged.connect(lambda: update_parameters(widget))
+    widget.variables_layout.addWidget(widget.UMPA_Nw_input)
 
 def toggle_field_phase(widget, checked, layout, label_attr, selection_attr, label_text):
     if checked == Qt.Checked:
@@ -293,4 +297,109 @@ def update_parameters(widget):
     """
     Update the parameters dictionary based on widget values.
     """
-    widget.experiment.update_parameters(widget)  # Correct method call
+    widget.experiment.update_parameters(widget)
+
+def add_lcs_variables(widget):
+    """
+    Add widgets for the 'lcs' method variables.
+    """
+    ensure_variables_layout(widget)
+    add_alpha_layout(widget)
+    add_weak_absorption_layout(widget)
+
+def add_lcs_df_variables(widget):
+    """
+    Add widgets for the 'lcs_dirdf' method variables.
+    """
+    ensure_variables_layout(widget)
+    add_max_shift_layout(widget)
+    add_pixel_size_layout(widget)
+    add_dist_object_detector_layout(widget)
+    add_dist_source_object_layout(widget)
+    add_LCS_median_filter_layout(widget)
+
+def add_misti_variables(widget):
+    """
+    Add widgets for the 'misti' method variables.
+    """
+    ensure_variables_layout(widget)
+    add_pixel_size_layout(widget)
+    add_dist_object_detector_layout(widget)
+    add_beta_layout(widget)
+    add_delta_layout(widget)
+    add_energy_layout(widget)
+    add_MIST_median_filter_layout(widget)
+    add_sigma_regularization_layout(widget)
+
+def add_mistii1_variables(widget):
+    """
+    Add widgets for the 'mistii1' method variables.
+    """
+    ensure_variables_layout(widget)
+    add_pixel_size_layout(widget)
+    add_dist_object_detector_layout(widget)
+    add_beta_layout(widget)
+    add_delta_layout(widget)
+    add_energy_layout(widget)
+    add_MIST_median_filter_layout(widget)
+    add_sigma_regularization_layout(widget)
+
+def add_mistii2_variables(widget):
+    """
+    Add widgets for the 'mistii2' method variables.
+    """
+    ensure_variables_layout(widget)
+    add_pixel_size_layout(widget)
+    add_dist_object_detector_layout(widget)
+    add_beta_layout(widget)
+    add_delta_layout(widget)
+    add_energy_layout(widget)
+    add_MIST_median_filter_layout(widget)
+    add_sigma_regularization_layout(widget)
+
+def add_pavlov2020_variables(widget):
+    """
+    Add widgets for the 'pavlov2020' method variables.
+    """
+    ensure_variables_layout(widget)
+    add_pixel_size_layout(widget)
+    add_dist_object_detector_layout(widget)
+    add_dist_source_object_layout(widget)
+    add_beta_layout(widget)
+    add_delta_layout(widget)
+    add_energy_layout(widget)
+    add_sigma_regularization_layout(widget)
+    add_source_size_layout(widget)
+
+def add_xsvt_variables(widget):
+    """
+    Add widgets for the 'xsvt' method variables.
+    """
+    ensure_variables_layout(widget)
+    add_max_shift_layout(widget)
+    add_pixel_size_layout(widget)
+    add_dist_object_detector_layout(widget)
+    add_dist_source_object_layout(widget)
+    add_XSVT_median_filter_layout(widget)
+    add_XSVT_Nw_layout(widget)
+
+def add_reversflowlcs_variables(widget):
+    """
+    Add widgets for the 'reversflowlcs' method variables.
+    """
+    ensure_variables_layout(widget)
+    add_max_shift_layout(widget)
+    add_pixel_size_layout(widget)
+    add_dist_object_detector_layout(widget)
+    add_dist_source_object_layout(widget)
+
+def add_specklematching_variables(widget):
+    """
+    Add widgets for the 'specklematching' method variables.
+    """
+    ensure_variables_layout(widget)
+    add_max_shift_layout(widget)
+    add_pixel_size_layout(widget)
+    add_dist_object_detector_layout(widget)
+    add_dist_source_object_layout(widget)
+    add_umpaNw_layout(widget)

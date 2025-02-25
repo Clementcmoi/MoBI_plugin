@@ -7,7 +7,18 @@ except ImportError:
 from ._sample_data import make_sample_data
 from ._writer import write_multiple, write_single_image
 
-from ._widgets import LcsWidget, LcsdfWidget, LcsdirdfWidget, MistiWidget
+from ._widgets import (
+    LcsWidget,
+    LcsdfWidget,
+    LcsdirdfWidget,
+    MistiWidget,
+    Mistii1Widget,
+    Mistii2Widget,
+    Pavlov2020Widget,
+    XsvtWidget,
+    ReversflowlcsWidget,
+    SpecklematchingWidget
+)
 
 
 # Liste des objets exposés par le package
@@ -17,8 +28,28 @@ __all__ = (
     "write_multiple",
     "make_sample_data",
     "LcsWidget",
-    "Widget2",
+    "LcsdfWidget",
+    "LcsdirdfWidget",
+    "MistiWidget",
+    "Mistii1Widget",
+    "Mistii2Widget",
+    "Pavlov2020Widget",
+    "XsvtWidget",
+    "ReversflowlcsWidget",
+    "SpecklematchingWidget"
 )
 
+
 def napari_experimental_provide_dock_widget():
-    return [LcsWidget, LcsdfWidget, LcsdirdfWidget, MistiWidget]
+    return [
+        LcsWidget,
+        LcsdfWidget,
+        LcsdirdfWidget,
+        MistiWidget,
+        Mistii1Widget,
+        Mistii2Widget,
+        Pavlov2020Widget,
+        XsvtWidget,
+        ReversflowlcsWidget,
+        SpecklematchingWidget
+    ]

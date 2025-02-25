@@ -1,3 +1,5 @@
+from numpy import pi
+
 class LayerUtils:
     @staticmethod
     def connect_signals(widget):
@@ -30,7 +32,6 @@ class LayerUtils:
 class Experiment:
     def __init__(self, method): 
         self.method = method
-        # Initialize the parameters based on the method
 
         self.sample_images = None
         self.reference_images = None
@@ -66,19 +67,71 @@ class Experiment:
             self.MIST_median_filter = None
             self.sigma_regularization = None
 
+        elif self.method == "mistii1":
+            self.nb_of_point = None
+            self.pixel = None
+            self.dist_object_detector = None
+            self.beta = None
+            self.delta = None
+            self.energy = None
+            self.MIST_median_filter = None
+            self.sigma_regularization = None
+
+        elif self.method == "mistii2":
+            self.nb_of_point = None
+            self.pixel = None
+            self.dist_object_detector = None
+            self.beta = None
+            self.delta = None
+            self.energy = None
+            self.MIST_median_filter = None
+            self.sigma_regularization = None
+
+        elif self.method == "pavlov2020":
+            self.pixel = None
+            self.dist_object_detector = None
+            self.dist_source_object = None
+            self.beta = None
+            self.delta = None
+            self.energy = None
+            self.sigma_regularization = None
+            self.source_size = None
+
+        elif self.method == "xsvt":
+            self.max_shift = None
+            self.pixel = None
+            self.dist_object_detector = None
+            self.dist_source_object = None
+            self.XSVT_median_filter = None
+            self.XSVT_Nw = None
+
+        elif self.method == "reversflowlcs":
+            self.nb_of_point = None
+            self.max_shift = None
+            self.pixel = None
+            self.dist_object_detector = None
+            self.dist_source_object = None
+
+        elif self.method == "specklematching":
+            self.max_shift = None
+            self.pixel = None
+            self.dist_object_detector = None
+            self.dist_source_object = None
+            self.umpaNw = None
+            
         self.phase_parameters = None
 
         print(f"Initialized Parameters with method: {self.method}")
 
     def getk(self):
-        # Placeholder for the actual implementation of getk
-        return 1.0
-
-    def convert_names_to_data(self, widget):
         """
-        Convert layer names to actual data.
+        Energy in eV
         """
-        
+        h=6.626e-34
+        c=2.998e8
+        e=1.6e-19
+        k=2*pi*self.energy*e/(h*c)
+        return k     
 
     def update_parameters(self, widget):
         """
@@ -104,9 +157,7 @@ class Experiment:
                 self.weak_absorption = widget.weak_absorption_checkbox.isChecked()
 
             elif self.method == "lcs_df":
-                # Récupérer la plage de l'axe 1 du viewer (par exemple, la largeur)
                 dim_range = widget.viewer.dims.range[0]
-                # Si la plage est fixe (min == max) alors nb_of_point vaut 1, sinon on calcule la taille
                 if dim_range[0] == dim_range[1]:
                     self.nb_of_point = 1
                 else:
@@ -118,7 +169,6 @@ class Experiment:
                 self.LCS_median_filter = int(widget.LCS_median_filter_input.text())
 
             elif self.method == "lcs_dirdf":
-                # Même logique pour nb_of_point en utilisant le viewer
                 dim_range = widget.viewer.dims.range[0]
                 if dim_range[0] == dim_range[1]:
                     self.nb_of_point = 1
@@ -139,7 +189,71 @@ class Experiment:
                 self.MIST_median_filter = int(widget.MIST_median_filter_input.text())
                 self.sigma_regularization = float(widget.sigma_regularization_input.text())
 
-            if widget.phase_retrieval_checkbox.isChecked():
+            elif self.method == "mistii1":
+                dim_range = widget.viewer.dims.range[0]
+                if dim_range[0] == dim_range[1]:
+                    self.nb_of_point = 1
+                else:
+                    self.nb_of_point = int(dim_range[1] - dim_range[0] + 1)
+                self.pixel = float(widget.pixel_input.text())
+                self.dist_object_detector = float(widget.dist_object_detector_input.text())
+                self.beta = float(widget.beta_input.text())
+                self.delta = float(widget.delta_input.text())
+                self.energy = float(widget.energy_input.text())
+                self.MIST_median_filter = int(widget.MIST_median_filter_input.text())
+                self.sigma_regularization = float(widget.sigma_regularization_input.text())
+
+            elif self.method == "mistii2":
+                dim_range = widget.viewer.dims.range[0]
+                if dim_range[0] == dim_range[1]:
+                    self.nb_of_point = 1
+                else:
+                    self.nb_of_point = int(dim_range[1] - dim_range[0] + 1)
+                self.pixel = float(widget.pixel_input.text())
+                self.dist_object_detector = float(widget.dist_object_detector_input.text())
+                self.beta = float(widget.beta_input.text())
+                self.delta = float(widget.delta_input.text())
+                self.energy = float(widget.energy_input.text())
+                self.MIST_median_filter = int(widget.MIST_median_filter_input.text())
+                self.sigma_regularization = float(widget.sigma_regularization_input.text())
+
+            elif self.method == "pavlov2020":
+                self.pixel = float(widget.pixel_input.text())
+                self.dist_object_detector = float(widget.dist_object_detector_input.text())
+                self.dist_source_object = float(widget.dist_source_object_input.text())
+                self.beta = float(widget.beta_input.text())
+                self.delta = float(widget.delta_input.text())
+                self.energy = float(widget.energy_input.text())
+                self.sigma_regularization = float(widget.sigma_regularization_input.text())
+                self.source_size = float(widget.source_size_input.text())
+
+            elif self.method == "xsvt":
+                self.max_shift = int(widget.max_shift_input.text())
+                self.pixel = float(widget.pixel_input.text())
+                self.dist_object_detector = float(widget.dist_object_detector_input.text())
+                self.dist_source_object = float(widget.dist_source_object_input.text())
+                self.XSVT_median_filter = int(widget.XSVT_median_filter_input.text())
+                self.XSVT_Nw = int(widget.XSVT_Nw_input.text())
+
+            elif self.method == "reversflowlcs":
+                dim_range = widget.viewer.dims.range[0]
+                if dim_range[0] == dim_range[1]:
+                    self.nb_of_point = 1
+                else:
+                    self.nb_of_point = int(dim_range[1] - dim_range[0] + 1)
+                self.max_shift = float(widget.max_shift_input.text())
+                self.pixel = float(widget.pixel_input.text())
+                self.dist_object_detector = float(widget.dist_object_detector_input.text())
+                self.dist_source_object = float(widget.dist_source_object_input.text())
+            
+            elif self.method == "specklematching":
+                self.max_shift = int(widget.max_shift_input.text())
+                self.pixel = float(widget.pixel_input.text())
+                self.dist_object_detector = float(widget.dist_object_detector_input.text())
+                self.dist_source_object = float(widget.dist_source_object_input.text())
+                self.umpaNw = int(widget.umpaNw_input.text())
+
+            if hasattr(widget, 'phase_retrieval_checkbox') and widget.phase_retrieval_checkbox.isChecked():
                 self.phase_parameters = {
                     'method': widget.phase_retrieval_selection.currentText(),
                     'pad': "antisym" if widget.pad_checkbox.isChecked() else None

@@ -1,10 +1,15 @@
 import numpy as np
 from mbipy.numpy.phase_retrieval import lcs
 from mbipy.src.normal_integration.fourier import kottler, frankot
-from mbipy.cupy.phase_retrieval import cst_csvt
 from ..popcorn.LCS_DirDF import processProjectionLCS_DDF
-from ..popcorn.LCS_DF import LCS_DF, process_projection_LCS_DF
+from ..popcorn.LCS_DF import process_projection_LCS_DF
 from ..popcorn.MISTI import MISTI
+from ..popcorn.MISTII_1 import processProjectionMISTII_1
+from ..popcorn.MISTII_2 import processProjectionMISTII_2
+from ..popcorn.Pavlov2020 import tie_Pavlovetal2020
+from ..popcorn.XSVT import processProjectionXSVT
+from ..popcorn.ReverseFlow_LCS import processProjection_rLCS
+from ..popcorn.speckle_matching import processProjectionUMPA
 from ._utils import Experiment  # Correct import
 
 def apply_corrections(viewer, experiment):
@@ -61,12 +66,7 @@ def processing(experiment, viewer):
     try:
         print(f"Processing with method: {experiment.method}")
         if experiment.method == 'lcs':
-            result = lcs(
-                reference_layer, sample_layer,
-                alpha=experiment.alpha,
-                weak_absorption=experiment.weak_absorption
-            )
-            # Réorganiser les axes pour extraire les composantes
+            result = lcs(reference_layer, sample_layer, alpha=experiment.alpha, weak_absorption=experiment.weak_absorption)
             result = np.moveaxis(result, -1, 0)
             result = {'abs': result[0], 'dx': result[1], 'dy': result[2]}
         elif experiment.method == 'lcs_df':
@@ -75,6 +75,18 @@ def processing(experiment, viewer):
             result = processProjectionLCS_DDF(experiment)
         elif experiment.method == 'misti':
             result = MISTI(experiment)
+        elif experiment.method == 'mistii1':
+            result = processProjectionMISTII_1(experiment)
+        elif experiment.method == 'mistii2':
+            result = processProjectionMISTII_2(experiment)
+        elif experiment.method == 'pavlov2020':
+            result = tie_Pavlovetal2020(experiment)
+        elif experiment.method == 'xsvt':
+            result = processProjectionXSVT(experiment)
+        elif experiment.method == 'reversflowlcs':
+            result = processProjection_rLCS(experiment)
+        elif experiment.method == 'specklematching':
+            result = processProjectionUMPA(experiment)
         else:
             raise ValueError(f"Unknown method: {experiment.method}")
     except Exception as e:
@@ -88,7 +100,7 @@ def processing(experiment, viewer):
         try:
             phase = apply_phase(result, experiment.phase_parameters)
             # Le nom de la couche phase est basé sur le nom de la couche sample
-            viewer.add_image(phase, name=f"{experiment.sample_images}_phase")
+            viewer.add_image(phase, name=f"{experiment.method}_phase")
         except Exception as e:
             print(f"Error during phase calculation: {e}")
             import traceback

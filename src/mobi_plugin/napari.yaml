@@ -1,7 +1,7 @@
 name: mobi-plugin
 display_name: MoBI
 visibility: public
-categories: ["Annotation", "Segmentation", "Acquisition"]
+categories: ["Acquisition"]
 contributions:
   commands:
     - id: mobi-plugin.get_reader
@@ -28,17 +28,35 @@ contributions:
     - id: mobi-plugin.misti
       python_name: mobi_plugin._widgets:MistiWidget
       title: MISTI
+    - id: mobi-plugin.mistii1
+      python_name: mobi_plugin._widgets:Mistii1Widget
+      title: MISTII 1
+    - id: mobi-plugin.mistii2
+      python_name: mobi_plugin._widgets:Mistii2Widget
+      title: MISTII 2
+    - id: mobi-plugin.pavlov2020
+      python_name: mobi_plugin._widgets:Pavlov2020Widget
+      title: Pavlov 2020
+    - id: mobi-plugin.xsvt
+      python_name: mobi_plugin._widgets:XsvtWidget
+      title: XSVT
+    - id: mobi-plugin.reverseflowlcs
+      python_name: mobi_plugin._widgets:ReversflowlcsWidget
+      title: Reversflow LCS
+    - id: mobi-plugin.specklematching
+      python_name: mobi_plugin._widgets:SpecklematchingWidget
+      title: Speckle Matching
   readers:
     - command: mobi-plugin.get_reader
       accepts_directories: true
-      filename_patterns: ['*.tdf', '*.nxs', '*.edf']
+      filename_patterns: ["*.tdf", "*.nxs", "*.edf"]
   writers:
     - command: mobi-plugin.write_multiple
-      layer_types: ['image*','labels*']
-      filename_extensions: ['.tif']
+      layer_types: ["image*", "labels*"]
+      filename_extensions: [".tif"]
     - command: mobi-plugin.write_single_image
-      layer_types: ['image']
-      filename_extensions: ['.tif']
+      layer_types: ["image"]
+      filename_extensions: [".tif"]
   sample_data:
     - command: mobi-plugin.make_sample_data
       display_name: MoBI
@@ -52,3 +70,15 @@ contributions:
       display_name: Lcs Dir Df
     - command: mobi-plugin.misti
       display_name: MISTI
+    - command: mobi-plugin.mistii1
+      display_name: MISTII 1
+    - command: mobi-plugin.mistii2
+      display_name: MISTII 2
+    - command: mobi-plugin.pavlov2020
+      display_name: Pavlov 2020
+    - command: mobi-plugin.xsvt
+      display_name: XSVT
+    - command: mobi-plugin.reverseflowlcs
+      display_name: Reversflow LCS
+    - command: mobi-plugin.specklematching
+      display_name: Speckle Matching

@@ -45,11 +45,9 @@ def write_single_image(path: str, data: Any, meta: dict) -> list[str]:
 
     if data.ndim >= 3:
         print("Saving all slices of a 3D image : ", data.shape)
-        # Create a directory for the slices
         dir_path = Path(path).with_suffix('')
         dir_path.mkdir(parents=True, exist_ok=True)
 
-        # Save each slice as a separate file
         for i in range(data.shape[0]):
             slice_path = dir_path / f"slice_{i}.tif"
             saved_paths.append(write_tif(slice_path, data[i], meta))
@@ -58,7 +56,6 @@ def write_single_image(path: str, data: Any, meta: dict) -> list[str]:
         print("Saving 2D image : ", data.shape)
         saved_paths.append(write_tif(path, data, meta))
 
-    # return path to any file(s) that were successfully written
     return saved_paths
 
 
@@ -83,43 +80,35 @@ def write_multiple(path: str, data: list[FullLayerData]) -> list[str]:
     print("multiple images")
     saved_paths = []
     for i, (layer_data, meta, layer_type) in enumerate(data):
-        # Ensure the image data is either 2D or 3D
         if layer_data.ndim not in (2, 3):
             raise ValueError(f"Unsupported number of dimensions: {layer_data.ndim}. Expected 2D or 3D data.")
 
         layer_path = f"{path}_layer_{i}"
         if layer_data.ndim == 3:
-            # Create a directory for the slices
             dir_path = Path(layer_path)
             dir_path.mkdir(parents=True, exist_ok=True)
 
-            # Save each slice as a separate file
             for j in range(layer_data.shape[0]):
                 slice_path = dir_path / f"slice_{j}.tif"
                 tif = tifimage.tifimage(layer_data[j])
                 tif.write(slice_path)
                 saved_paths.append(str(slice_path))
         else:
-            # Save the 2D image data as a TIFF file using fabio
             tif = tifimage.tifimage(layer_data)
             tif.write(f"{layer_path}.tif")
             saved_paths.append(f"{layer_path}.tif")
 
-    # return path to any file(s) that were successfully written
     return saved_paths
 
 
 def write_tif(path, data, meta):
-    # Save the first slice as a TIFF file using fabio
     tif = tifimage.tifimage(data)
 
     print(meta)
 
-    # Save the metadata in the TIFF file
     for key, value in meta.items():
         tif.header[key] = value
 
-    # Save the TIFF file
     tif.write(path)
 
     return path
