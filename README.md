@@ -27,7 +27,7 @@ Then, install the required packages within the virtual environment.
 
 ## Python Version
 
-This plugin requires Python 3.7 to 3.12. Ensure you have the correct version installed:
+This plugin requires Python 3.12. Ensure you have the correct version installed:
 
 ```bash
 python --version

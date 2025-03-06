@@ -1,4 +1,5 @@
 from numpy import pi
+from qtpy.QtCore import QSettings
 
 class LayerUtils:
     @staticmethod
@@ -32,11 +33,20 @@ class LayerUtils:
 class Experiment:
     def __init__(self, method): 
         self.method = method
+        self.settings = QSettings("mobi", "mobiconfig")
 
         self.sample_images = None
         self.reference_images = None
         self.darkfield = None
         self.flatfield = None
+
+        self._initialize_method_parameters()
+
+        self.load_settings()
+
+        print(f"Initialized Parameters with method: {self.method}")
+
+    def _initialize_method_parameters(self):
 
         if self.method == "lcs":
             self.alpha = None
@@ -121,8 +131,6 @@ class Experiment:
             
         self.phase_parameters = None
 
-        print(f"Initialized Parameters with method: {self.method}")
-
     def getk(self):
         """
         Energy in eV
@@ -132,6 +140,29 @@ class Experiment:
         e=1.6e-19
         k=2*pi*self.energy*e/(h*c)
         return k     
+    
+    def load_settings(self):
+
+        method_key_prefix = f"{self.method}/"
+
+        for attr in vars(self):
+            if attr not in ["method", "settings"]:
+                key = method_key_prefix + attr
+                value = self.settings.value(key, getattr(self, attr))
+                setattr(self, attr, value)
+
+        print(f"Loaded Parameters for method: {self.method}: {vars(self)}")
+
+    def save_settings(self):
+
+        method_key_prefix = f"{self.method}/"
+
+        for attr in vars(self):
+            if attr not in ["method", "settings"]:
+                key = method_key_prefix + attr
+                self.settings.setValue(key, getattr(self, attr))
+
+        print(f"Saved Parameters for method: {self.method}: {vars(self)}")
 
     def update_parameters(self, widget):
         """
@@ -260,5 +291,8 @@ class Experiment:
                 }
             else:
                 self.phase_parameters = None
+
+            self.save_settings()
+
         except ValueError as e:
             print(f"Error updating parameters: {e}")
