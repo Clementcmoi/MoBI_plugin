@@ -64,7 +64,6 @@ dependencies = [
         "ptwt",
         "fabio",
         "SimpleITK",
-        "h5py",
 ]
 
 [project.optional-dependencies]
