@@ -52,10 +52,6 @@ To install the latest development version:
 ```bash
 pip install git+https://github.com/Clementcmoi/MoBI_plugin.git
 ```
-## Contributing
-
-Contributions are very welcome. Tests can be run with [tox], please ensure
-the coverage at least stays the same before you submit a pull request.
 
 ## License
 
