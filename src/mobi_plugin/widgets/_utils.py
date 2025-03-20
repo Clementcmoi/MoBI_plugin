@@ -56,6 +56,7 @@ class Experiment:
             self.nb_of_point = None
             self.max_shift = None
             self.pixel = None
+            self.energy = None
             self.dist_object_detector = None
             self.dist_source_object = None
             self.LCS_median_filter = None
@@ -64,6 +65,7 @@ class Experiment:
             self.nb_of_point = None
             self.max_shift = None
             self.pixel = None
+            self.energy = None
             self.dist_object_detector = None
             self.dist_source_object = None
             self.LCS_median_filter = None
@@ -195,6 +197,7 @@ class Experiment:
                     self.nb_of_point = int(dim_range[1] - dim_range[0] + 1)
                 self.max_shift = float(widget.max_shift_input.text())
                 self.pixel = float(widget.pixel_input.text())
+                self.energy = float(widget.energy_input.text())
                 self.dist_object_detector = float(widget.dist_object_detector_input.text())
                 self.dist_source_object = float(widget.dist_source_object_input.text())
                 self.LCS_median_filter = int(widget.LCS_median_filter_input.text())
@@ -207,6 +210,7 @@ class Experiment:
                     self.nb_of_point = int(dim_range[1] - dim_range[0] + 1)
                 self.max_shift = float(widget.max_shift_input.text())
                 self.pixel = float(widget.pixel_input.text())
+                self.energy = float(widget.energy_input.text())
                 self.dist_object_detector = float(widget.dist_object_detector_input.text())
                 self.dist_source_object = float(widget.dist_source_object_input.text())
                 self.LCS_median_filter = int(widget.LCS_median_filter_input.text())
