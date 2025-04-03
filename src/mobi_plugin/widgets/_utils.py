@@ -131,7 +131,7 @@ class Experiment:
             self.pixel = None
             self.dist_object_detector = None
             self.dist_source_object = None
-            self.umpaNw = None
+            self.UMPA_Nw = None
             self.energy = None
             
         self.phase_parameters = None
@@ -291,7 +291,7 @@ class Experiment:
                 self.pixel = float(widget.pixel_input.text())
                 self.dist_object_detector = float(widget.dist_object_detector_input.text())
                 self.dist_source_object = float(widget.dist_source_object_input.text())
-                self.umpaNw = int(widget.umpaNw_input.text())
+                self.UMPA_Nw = int(widget.UMPA_Nw_input.text())
                 self.energy = float(widget.energy_input.text())
 
             if hasattr(widget, 'phase_retrieval_checkbox') and widget.phase_retrieval_checkbox.isChecked():
