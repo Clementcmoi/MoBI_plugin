@@ -114,6 +114,7 @@ class Experiment:
             self.pixel = None
             self.dist_object_detector = None
             self.dist_source_object = None
+            self.energy = None
             self.XSVT_median_filter = None
             self.XSVT_Nw = None
 
@@ -123,6 +124,7 @@ class Experiment:
             self.pixel = None
             self.dist_object_detector = None
             self.dist_source_object = None
+            self.energy = None
 
         elif self.method == "specklematching":
             self.max_shift = None
@@ -130,6 +132,7 @@ class Experiment:
             self.dist_object_detector = None
             self.dist_source_object = None
             self.umpaNw = None
+            self.energy = None
             
         self.phase_parameters = None
 
@@ -267,6 +270,7 @@ class Experiment:
                 self.pixel = float(widget.pixel_input.text())
                 self.dist_object_detector = float(widget.dist_object_detector_input.text())
                 self.dist_source_object = float(widget.dist_source_object_input.text())
+                self.energy = float(widget.energy_input.text())
                 self.XSVT_median_filter = int(widget.XSVT_median_filter_input.text())
                 self.XSVT_Nw = int(widget.XSVT_Nw_input.text())
 
@@ -280,6 +284,7 @@ class Experiment:
                 self.pixel = float(widget.pixel_input.text())
                 self.dist_object_detector = float(widget.dist_object_detector_input.text())
                 self.dist_source_object = float(widget.dist_source_object_input.text())
+                self.energy = float(widget.energy_input.text())
             
             elif self.method == "specklematching":
                 self.max_shift = int(widget.max_shift_input.text())
@@ -287,6 +292,7 @@ class Experiment:
                 self.dist_object_detector = float(widget.dist_object_detector_input.text())
                 self.dist_source_object = float(widget.dist_source_object_input.text())
                 self.umpaNw = int(widget.umpaNw_input.text())
+                self.energy = float(widget.energy_input.text())
 
             if hasattr(widget, 'phase_retrieval_checkbox') and widget.phase_retrieval_checkbox.isChecked():
                 self.phase_parameters = {
