@@ -4,7 +4,6 @@ except ImportError:
     __version__ = "unknown"
 
 # Importation des fonctions nécessaires des différents modules
-from ._sample_data import make_sample_data
 from ._writer import write_tiff
 
 from ._widgets import (
@@ -25,7 +24,6 @@ from ._widgets import (
 __all__ = (
     "__version__",
     "write_tiff",
-    "make_sample_data",
     "LcsWidget",
     "LcsdfWidget",
     "LcsdirdfWidget",

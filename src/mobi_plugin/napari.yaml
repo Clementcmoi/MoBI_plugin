@@ -12,10 +12,6 @@ contributions:
       python_name: mobi_plugin._writer:write_tiff
       title: Save multi-layer data with MoBI
 
-    - id: mobi-plugin.make_sample_data
-      python_name: mobi_plugin._sample_data:make_sample_data
-      title: Load sample data from MoBI
-
     - id: mobi-plugin.lcs
       python_name: mobi_plugin._widgets:LcsWidget
       title: Lcs
@@ -49,15 +45,12 @@ contributions:
   readers:
     - command: mobi-plugin.get_reader
       accepts_directories: true
-      filename_patterns: ["*.tdf", "*.nxs", "*.edf"]
+      filename_patterns: ["*.tdf", "*.nxs", "*.edf", "*.h5"]
   writers:
     - command: mobi-plugin.write_tiff
       layer_types: ["image"]
       filename_extensions: [".tif"]
-  sample_data:
-    - command: mobi-plugin.make_sample_data
-      display_name: MoBI
-      key: unique_id.1
+
   widgets:
     - command: mobi-plugin.lcs
       display_name: Lcs
