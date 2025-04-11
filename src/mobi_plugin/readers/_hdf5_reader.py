@@ -58,7 +58,7 @@ def read_hdf5(paths):
                     else:
                         index = [slice(None)] * 3
                         index[dim] = slice_number
-                        data = np.array(h5file[keys][tuple(index)])
+                        data = np.array(h5file[keys][tuple(index)], dtype=np.float32)
 
                     if keys not in dataset_layers:
                         dataset_layers[keys] = []
