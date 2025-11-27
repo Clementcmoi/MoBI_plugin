@@ -1,4 +1,5 @@
 from numpy import pi
+from qtpy.QtCore import QSettings
 
 class LayerUtils:
     @staticmethod
@@ -32,11 +33,20 @@ class LayerUtils:
 class Experiment:
     def __init__(self, method): 
         self.method = method
+        self.settings = QSettings("mobi", "mobiconfig")
 
         self.sample_images = None
         self.reference_images = None
         self.darkfield = None
         self.flatfield = None
+
+        self._initialize_method_parameters()
+
+        self.load_settings()
+
+        print(f"Initialized Parameters with method: {self.method}")
+
+    def _initialize_method_parameters(self):
 
         if self.method == "lcs":
             self.alpha = None
@@ -46,6 +56,7 @@ class Experiment:
             self.nb_of_point = None
             self.max_shift = None
             self.pixel = None
+            self.energy = None
             self.dist_object_detector = None
             self.dist_source_object = None
             self.energy = None
@@ -55,6 +66,7 @@ class Experiment:
             self.nb_of_point = None
             self.max_shift = None
             self.pixel = None
+            self.energy = None
             self.dist_object_detector = None
             self.dist_source_object = None
             self.energy = None
@@ -104,6 +116,7 @@ class Experiment:
             self.pixel = None
             self.dist_object_detector = None
             self.dist_source_object = None
+            self.energy = None
             self.XSVT_median_filter = None
             self.XSVT_Nw = None
 
@@ -121,14 +134,8 @@ class Experiment:
             self.dist_object_detector = None
             self.dist_source_object = None
             self.umpaNw = None
-
-        elif self.method == "singleshot":
-            self.window_size = None
-            self.alpha = None
             
         self.phase_parameters = None
-
-        print(f"Initialized Parameters with method: {self.method}")
 
     def getk(self):
         """
@@ -139,6 +146,29 @@ class Experiment:
         e=1.6e-19
         k=2*pi*self.energy*e/(h*c)
         return k     
+    
+    def load_settings(self):
+
+        method_key_prefix = f"{self.method}/"
+
+        for attr in vars(self):
+            if attr not in ["method", "settings"]:
+                key = method_key_prefix + attr
+                value = self.settings.value(key, getattr(self, attr))
+                setattr(self, attr, value)
+
+        print(f"Loaded Parameters for method: {self.method}: {vars(self)}")
+
+    def save_settings(self):
+
+        method_key_prefix = f"{self.method}/"
+
+        for attr in vars(self):
+            if attr not in ["method", "settings"]:
+                key = method_key_prefix + attr
+                self.settings.setValue(key, getattr(self, attr))
+
+        print(f"Saved Parameters for method: {self.method}: {vars(self)}")
 
     def update_parameters(self, widget):
         """
@@ -171,6 +201,7 @@ class Experiment:
                     self.nb_of_point = int(dim_range[1] - dim_range[0] + 1)
                 self.max_shift = float(widget.max_shift_input.text())
                 self.pixel = float(widget.pixel_input.text())
+                self.energy = float(widget.energy_input.text())
                 self.dist_object_detector = float(widget.dist_object_detector_input.text())
                 self.dist_source_object = float(widget.dist_source_object_input.text())
                 self.energy = float(widget.energy_input.text())
@@ -184,6 +215,7 @@ class Experiment:
                     self.nb_of_point = int(dim_range[1] - dim_range[0] + 1)
                 self.max_shift = float(widget.max_shift_input.text())
                 self.pixel = float(widget.pixel_input.text())
+                self.energy = float(widget.energy_input.text())
                 self.dist_object_detector = float(widget.dist_object_detector_input.text())
                 self.dist_source_object = float(widget.dist_source_object_input.text())
                 self.energy = float(widget.energy_input.text())
@@ -241,6 +273,7 @@ class Experiment:
                 self.pixel = float(widget.pixel_input.text())
                 self.dist_object_detector = float(widget.dist_object_detector_input.text())
                 self.dist_source_object = float(widget.dist_source_object_input.text())
+                self.energy = float(widget.energy_input.text())
                 self.XSVT_median_filter = int(widget.XSVT_median_filter_input.text())
                 self.XSVT_Nw = int(widget.XSVT_Nw_input.text())
 
@@ -261,7 +294,8 @@ class Experiment:
                 self.pixel = float(widget.pixel_input.text())
                 self.dist_object_detector = float(widget.dist_object_detector_input.text())
                 self.dist_source_object = float(widget.dist_source_object_input.text())
-                self.umpaNw = int(widget.umpaNw_input.text())
+                self.UMPA_Nw = int(widget.UMPA_Nw_input.text())
+                self.energy = float(widget.energy_input.text())
 
             elif self.method == "singleshot":
                 self.window_size = int(widget.window_size_input.text())
@@ -274,5 +308,8 @@ class Experiment:
                 }
             else:
                 self.phase_parameters = None
+
+            self.save_settings()
+
         except ValueError as e:
             print(f"Error updating parameters: {e}")

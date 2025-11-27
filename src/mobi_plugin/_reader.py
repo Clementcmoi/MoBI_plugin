@@ -22,7 +22,7 @@ def napari_get_reader(path):
     if os.path.isdir(path):
         return read_hdf5
 
-    if path.endswith(".tdf") or path.endswith(".nxs"):
+    if path.endswith(".tdf") or path.endswith(".nxs") or path.endswith(".h5"):
         return read_hdf5
     
     elif path.endswith(".edf"):

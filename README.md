@@ -27,7 +27,7 @@ Then, install the required packages within the virtual environment.
 
 ## Python Version
 
-This plugin requires Python 3.7 to 3.12. Ensure you have the correct version installed:
+This plugin requires Python 3.12. Ensure you have the correct version installed:
 
 ```bash
 python --version
@@ -52,10 +52,6 @@ To install the latest development version:
 ```bash
 pip install git+https://github.com/Clementcmoi/MoBI_plugin.git
 ```
-## Contributing
-
-Contributions are very welcome. Tests can be run with [tox], please ensure
-the coverage at least stays the same before you submit a pull request.
 
 ## License
 

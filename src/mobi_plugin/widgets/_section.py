@@ -170,102 +170,118 @@ def ensure_variables_layout(widget):
 def add_alpha_layout(widget):
     widget.variables_layout.addWidget(QLabel("Alpha:"))
     widget.alpha_input = QLineEdit()
-    widget.alpha_input.textChanged.connect(lambda: update_parameters(widget))
+    widget.alpha_input.setText(str(widget.experiment.alpha) if widget.experiment.alpha is not None else "")
+    # widget.alpha_input.textChanged.connect(lambda: update_parameters(widget))
     widget.variables_layout.addWidget(widget.alpha_input)
 
 def add_weak_absorption_layout(widget):
     widget.weak_absorption_checkbox = QCheckBox("Weak Absorption")
-    widget.weak_absorption_checkbox.stateChanged.connect(lambda: update_parameters(widget))
+    # widget.weak_absorption_checkbox.stateChanged.connect(lambda: update_parameters(widget))
     widget.variables_layout.addWidget(widget.weak_absorption_checkbox)
 
 def add_window_size_layout(widget):
     widget.variables_layout.addWidget(QLabel("Window size:"))
     widget.window_size_input = QLineEdit()
-    widget.window_size_input.textChanged.connect(lambda: update_parameters(widget))
+    widget.alpha_input.setText(str(widget.experiment.window_size) if widget.experiment.window_size is not None else "")
+    # widget.window_size_input.textChanged.connect(lambda: update_parameters(widget))
     widget.variables_layout.addWidget(widget.window_size_input)
 
 def add_max_shift_layout(widget):
     widget.variables_layout.addWidget(QLabel("Max shift:"))
     widget.max_shift_input = QLineEdit()
-    widget.max_shift_input.textChanged.connect(lambda: update_parameters(widget))
+    widget.max_shift_input.setText(str(widget.experiment.max_shift) if widget.experiment.max_shift is not None else "")
+    # widget.max_shift_input.textChanged.connect(lambda: update_parameters(widget))
     widget.variables_layout.addWidget(widget.max_shift_input)
 
 def add_pixel_size_layout(widget):
     widget.variables_layout.addWidget(QLabel("Pixel size:"))
     widget.pixel_input = QLineEdit()
-    widget.pixel_input.textChanged.connect(lambda: update_parameters(widget))
+    widget.pixel_input.setText(str(widget.experiment.pixel) if widget.experiment.pixel is not None else "")
+    # widget.pixel_input.textChanged.connect(lambda: update_parameters(widget))
     widget.variables_layout.addWidget(widget.pixel_input)
 
 def add_dist_object_detector_layout(widget):
     widget.variables_layout.addWidget(QLabel("Distance object-detector:"))
     widget.dist_object_detector_input = QLineEdit()
-    widget.dist_object_detector_input.textChanged.connect(lambda: update_parameters(widget))
+    widget.dist_object_detector_input.setText(str(widget.experiment.dist_object_detector) if widget.experiment.dist_object_detector is not None else "")
+    # widget.dist_object_detector_input.textChanged.connect(lambda: update_parameters(widget))
     widget.variables_layout.addWidget(widget.dist_object_detector_input)
 
 def add_dist_source_object_layout(widget):
     widget.variables_layout.addWidget(QLabel("Distance source-object:"))
     widget.dist_source_object_input = QLineEdit()
-    widget.dist_source_object_input.textChanged.connect(lambda: update_parameters(widget))
+    widget.dist_source_object_input.setText(str(widget.experiment.dist_source_object) if widget.experiment.dist_source_object is not None else "")
+    # widget.dist_source_object_input.textChanged.connect(lambda: update_parameters(widget))
     widget.variables_layout.addWidget(widget.dist_source_object_input)
 
 def add_LCS_median_filter_layout(widget):
     widget.variables_layout.addWidget(QLabel("LCS median filter:"))
     widget.LCS_median_filter_input = QLineEdit()
-    widget.LCS_median_filter_input.textChanged.connect(lambda: update_parameters(widget))
+    widget.LCS_median_filter_input.setText(str(widget.experiment.LCS_median_filter) if widget.experiment.LCS_median_filter is not None else "")
+    # widget.LCS_median_filter_input.textChanged.connect(lambda: update_parameters(widget))
     widget.variables_layout.addWidget(widget.LCS_median_filter_input)
 
 def add_beta_layout(widget):
     widget.variables_layout.addWidget(QLabel("Beta:"))
     widget.beta_input = QLineEdit()
-    widget.beta_input.textChanged.connect(lambda: update_parameters(widget))
+    widget.beta_input.setText(str(widget.experiment.beta) if widget.experiment.beta is not None else "")
+    # widget.beta_input.textChanged.connect(lambda: update_parameters(widget))
     widget.variables_layout.addWidget(widget.beta_input)
 
 def add_delta_layout(widget):
     widget.variables_layout.addWidget(QLabel("Delta:"))
     widget.delta_input = QLineEdit()
-    widget.delta_input.textChanged.connect(lambda: update_parameters(widget))
+    widget.delta_input.setText(str(widget.experiment.delta) if widget.experiment.delta is not None else "")
+    # widget.delta_input.textChanged.connect(lambda: update_parameters(widget))
     widget.variables_layout.addWidget(widget.delta_input)
 
 def add_energy_layout(widget):
     widget.variables_layout.addWidget(QLabel("Energy:"))
     widget.energy_input = QLineEdit()
-    widget.energy_input.textChanged.connect(lambda: update_parameters(widget))
+    widget.energy_input.setText(str(widget.experiment.energy) if widget.experiment.energy is not None else "")
+    # widget.energy_input.textChanged.connect(lambda: update_parameters(widget))
     widget.variables_layout.addWidget(widget.energy_input)
 
 def add_MIST_median_filter_layout(widget):
     widget.variables_layout.addWidget(QLabel("MIST median filter:"))
     widget.MIST_median_filter_input = QLineEdit()
-    widget.MIST_median_filter_input.textChanged.connect(lambda: update_parameters(widget))
+    widget.MIST_median_filter_input.setText(str(widget.experiment.MIST_median_filter) if widget.experiment.MIST_median_filter is not None else "")
+    # widget.MIST_median_filter_input.textChanged.connect(lambda: update_parameters(widget))
     widget.variables_layout.addWidget(widget.MIST_median_filter_input)
 
 def add_sigma_regularization_layout(widget):
     widget.variables_layout.addWidget(QLabel("Sigma regularization:"))
     widget.sigma_regularization_input = QLineEdit()
-    widget.sigma_regularization_input.textChanged.connect(lambda: update_parameters(widget))
+    widget.sigma_regularization_input.setText(str(widget.experiment.sigma_regularization) if widget.experiment.sigma_regularization is not None else "")
+    # widget.sigma_regularization_input.textChanged.connect(lambda: update_parameters(widget))
     widget.variables_layout.addWidget(widget.sigma_regularization_input)
 
 def add_source_size_layout(widget):
     widget.variables_layout.addWidget(QLabel("Source size:"))
     widget.source_size_input = QLineEdit()
-    widget.source_size_input.textChanged.connect(lambda: update_parameters(widget))
+    widget.source_size_input.setText(str(widget.experiment.source_size) if widget.experiment.source_size is not None else "")
+    # widget.source_size_input.textChanged.connect(lambda: update_parameters(widget))
     widget.variables_layout.addWidget(widget.source_size_input)
 
 def add_XSVT_median_filter_layout(widget):
     widget.variables_layout.addWidget(QLabel("XSVT median filter:"))
     widget.XSVT_median_filter_input = QLineEdit()
-    widget.XSVT_median_filter_input.textChanged.connect(lambda: update_parameters(widget))
+    widget.XSVT_median_filter_input.setText(str(widget.experiment.XSVT_median_filter) if widget.experiment.XSVT_median_filter is not None else "")
+    # widget.XSVT_median_filter_input.textChanged.connect(lambda: update_parameters(widget))
     widget.variables_layout.addWidget(widget.XSVT_median_filter_input)
 
 def add_XSVT_Nw_layout(widget):
     widget.variables_layout.addWidget(QLabel("XSVT Nw:"))
     widget.XSVT_Nw_input = QLineEdit()
-    widget.XSVT_Nw_input.textChanged.connect(lambda: update_parameters(widget))
+    widget.XSVT_Nw_input.setText(str(widget.experiment.XSVT_Nw) if widget.experiment.XSVT_Nw is not None else "")
+    # widget.XSVT_Nw_input.textChanged.connect(lambda: update_parameters(widget))
     widget.variables_layout.addWidget(widget.XSVT_Nw_input)
 
 def add_umpaNw_layout(widget):
     widget.variables_layout.addWidget(QLabel("UMPA Nw:"))
     widget.UMPA_Nw_input = QLineEdit()
-    widget.UMPA_Nw_input.textChanged.connect(lambda: update_parameters(widget))
+    widget.UMPA_Nw_input.setText(str(widget.experiment.UMPA_Nw) if widget.experiment.UMPA_Nw is not None else "")
+    # widget.UMPA_Nw_input.textChanged.connect(lambda: update_parameters(widget))
     widget.variables_layout.addWidget(widget.UMPA_Nw_input)
 
 def toggle_field_phase(widget, checked, layout, label_attr, selection_attr, label_text):
