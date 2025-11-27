@@ -407,3 +407,11 @@ def add_specklematching_variables(widget):
     add_dist_source_object_layout(widget)
     add_energy_layout(widget)
     add_umpaNw_layout(widget)
+
+def add_singleshot_variables(widget):
+    """
+    Add widgets for the 'singleshot' method variables.
+    """
+    ensure_variables_layout(widget)
+    add_window_size_layout(widget)
+    add_alpha_layout(widget)

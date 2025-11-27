@@ -371,3 +371,37 @@ class SpecklematchingWidget(QWidget):
         self.layout().addSpacerItem(
             QSpacerItem(20, 40, QSizePolicy.Minimum, QSizePolicy.Expanding)
         )
+
+class SingleshotWidget(QWidget):
+    """
+    Custom widget for Singleshot processing in Napari.
+    """
+
+    def __init__(self, viewer: "napari.viewer.Viewer"):
+        super().__init__()
+        self.viewer = viewer
+        self.experiment = Experiment(method="singleshot")
+        print(f"Initialized self.experiment_parameters: {self.experiment}")
+
+        self.setup_ui()
+        LayerUtils.connect_signals(self)
+
+    def setup_ui(self):
+        """
+        Set up the user interface components.
+        """
+        self.setLayout(QVBoxLayout())
+        self.layout().addWidget(QLabel("Singleshot Processing"))
+
+        add_layer_selection_section(self)
+        add_darkfield_section(self)
+        add_flatfield_section(self)
+        
+        add_singleshot_variables(self)
+
+        add_processing_button(self)
+
+        LayerUtils.update_layer_selections(self)
+        self.layout().addSpacerItem(
+            QSpacerItem(20, 40, QSizePolicy.Minimum, QSizePolicy.Expanding)
+        )

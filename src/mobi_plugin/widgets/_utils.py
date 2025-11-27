@@ -48,6 +48,7 @@ class Experiment:
             self.pixel = None
             self.dist_object_detector = None
             self.dist_source_object = None
+            self.energy = None
             self.LCS_median_filter = None
 
         elif self.method == "lcs_dirdf":
@@ -56,6 +57,7 @@ class Experiment:
             self.pixel = None
             self.dist_object_detector = None
             self.dist_source_object = None
+            self.energy = None
             self.LCS_median_filter = None
 
         elif self.method == "misti":
@@ -111,6 +113,7 @@ class Experiment:
             self.pixel = None
             self.dist_object_detector = None
             self.dist_source_object = None
+            self.energy = None
 
         elif self.method == "specklematching":
             self.max_shift = None
@@ -118,6 +121,10 @@ class Experiment:
             self.dist_object_detector = None
             self.dist_source_object = None
             self.umpaNw = None
+
+        elif self.method == "singleshot":
+            self.window_size = None
+            self.alpha = None
             
         self.phase_parameters = None
 
@@ -166,6 +173,7 @@ class Experiment:
                 self.pixel = float(widget.pixel_input.text())
                 self.dist_object_detector = float(widget.dist_object_detector_input.text())
                 self.dist_source_object = float(widget.dist_source_object_input.text())
+                self.energy = float(widget.energy_input.text())
                 self.LCS_median_filter = int(widget.LCS_median_filter_input.text())
 
             elif self.method == "lcs_dirdf":
@@ -178,6 +186,7 @@ class Experiment:
                 self.pixel = float(widget.pixel_input.text())
                 self.dist_object_detector = float(widget.dist_object_detector_input.text())
                 self.dist_source_object = float(widget.dist_source_object_input.text())
+                self.energy = float(widget.energy_input.text())
                 self.LCS_median_filter = int(widget.LCS_median_filter_input.text())
 
             elif self.method == "misti":
@@ -245,6 +254,7 @@ class Experiment:
                 self.pixel = float(widget.pixel_input.text())
                 self.dist_object_detector = float(widget.dist_object_detector_input.text())
                 self.dist_source_object = float(widget.dist_source_object_input.text())
+                self.energy = float(widget.energy_input.text())
             
             elif self.method == "specklematching":
                 self.max_shift = int(widget.max_shift_input.text())
@@ -252,6 +262,10 @@ class Experiment:
                 self.dist_object_detector = float(widget.dist_object_detector_input.text())
                 self.dist_source_object = float(widget.dist_source_object_input.text())
                 self.umpaNw = int(widget.umpaNw_input.text())
+
+            elif self.method == "singleshot":
+                self.window_size = int(widget.window_size_input.text())
+                self.alpha = float(widget.alpha_input.text())
 
             if hasattr(widget, 'phase_retrieval_checkbox') and widget.phase_retrieval_checkbox.isChecked():
                 self.phase_parameters = {

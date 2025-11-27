@@ -14,6 +14,7 @@ from ..popcorn.Pavlov2020 import tie_Pavlovetal2020
 from ..popcorn.XSVT import processProjectionXSVT
 from ..popcorn.ReverseFlow_LCS import processProjection_rLCS
 from ..popcorn.speckle_matching import processProjectionUMPA
+from ..popcorn.vectorised_flow_darkfield import vectorised_flow_darkfield
 
 from ._utils import Experiment
 
@@ -109,6 +110,9 @@ def processing(experiment, viewer):
                 result = processProjection_rLCS(experiment)
             elif experiment.method == 'specklematching':
                 result = processProjectionUMPA(experiment)
+            elif experiment.method == 'singleshot':
+                result = vectorised_flow_darkfield(reference_layer, sample_layer, win_size=(experiment.window_size, experiment.window_size), alpha=experiment.alpha)
+                result = {'df' : result}
             else:
                 raise ValueError(f"Unknown method: {experiment.method}")
         except Exception as e:

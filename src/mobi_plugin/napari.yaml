@@ -46,6 +46,9 @@ contributions:
     - id: mobi-plugin.specklematching
       python_name: mobi_plugin._widgets:SpecklematchingWidget
       title: Speckle Matching
+    - id: mobi-plugin.singleshot
+      python_name: mobi_plugin._widgets:SingleshotWidget
+      title: Single Shot Darkfield
   readers:
     - command: mobi-plugin.get_reader
       accepts_directories: true
@@ -82,3 +85,5 @@ contributions:
       display_name: Reversflow LCS
     - command: mobi-plugin.specklematching
       display_name: Speckle Matching
+    - command: mobi-plugin.singleshot
+      display_name: Single Shot Darkfield
